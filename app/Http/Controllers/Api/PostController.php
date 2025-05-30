@@ -12,10 +12,10 @@ use Illuminate\Support\Facades\Validator;
 
 class PostController extends ApiController
 {
-    public function __construct()
-    {
-        $this->middleware('auth:sanctum')->except(['index', 'show', 'userPosts']);
-    }
+    // public function __construct()
+    // {
+    //     $this->middleware('auth:sanctum')->except(['index', 'show', 'userPosts']);
+    // }
 
     /**
      * Display a listing of the resource.
@@ -41,7 +41,7 @@ class PostController extends ApiController
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors()->toArray());
         }
 
         $post = Auth::user()->posts()->create(['content' => $request->content]);
@@ -85,7 +85,7 @@ class PostController extends ApiController
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors()->toArray());
         }
 
         if ($request->has('content')) {
@@ -147,7 +147,7 @@ class PostController extends ApiController
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors()->toArray());
         }
 
         $file = $request->file('attachment');

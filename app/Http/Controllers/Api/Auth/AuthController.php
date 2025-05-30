@@ -22,7 +22,7 @@ class AuthController extends ApiController
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors()->toArray());
         }
 
         $user = User::create([
@@ -49,7 +49,7 @@ class AuthController extends ApiController
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors()->toArray());
         }
 
         $loginField = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
@@ -74,7 +74,10 @@ class AuthController extends ApiController
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $currentToken = $request->user()->currentAccessToken();
+        if ($currentToken) {
+            $currentToken->delete();
+        }
         return $this->sendResponse([], 'User logged out successfully.');
     }
 

@@ -59,7 +59,7 @@ class UserController extends ApiController
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors()->toArray());
         }
 
         $user->fill($request->only(['name', 'username', 'email', 'bio']));
@@ -80,7 +80,7 @@ class UserController extends ApiController
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors()->toArray());
         }
 
         if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
@@ -108,7 +108,7 @@ class UserController extends ApiController
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors()->toArray());
         }
 
         if (!Hash::check($request->current_password, $user->password)) {
@@ -144,7 +144,7 @@ class UserController extends ApiController
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors()->toArray());
         }
 
         $user->fill($request->only(['name', 'username', 'email', 'bio', 'role']));

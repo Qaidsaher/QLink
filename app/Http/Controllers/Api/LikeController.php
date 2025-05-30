@@ -9,10 +9,10 @@ use Illuminate\Support\Facades\Auth;
 
 class LikeController extends ApiController
 {
-    public function __construct()
-    {
-        $this->middleware('auth:sanctum');
-    }
+    // public function __construct()
+    // {
+    //     $this->middleware('auth:sanctum');
+    // }
 
     /**
      * Like a post.

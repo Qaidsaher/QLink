@@ -12,7 +12,7 @@ class CommentController extends ApiController
 {
     public function __construct()
     {
-        $this->middleware('auth:sanctum')->except(['index']);
+        // $this->middleware('auth:sanctum')->except(['index']);
     }
 
     /**
@@ -40,7 +40,7 @@ class CommentController extends ApiController
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors()->toArray());
         }
 
         $commentData = [
@@ -90,7 +90,7 @@ class CommentController extends ApiController
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors()->toArray());
         }
 
         $comment->content = $request->content;

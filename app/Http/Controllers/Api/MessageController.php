@@ -11,10 +11,10 @@ use Illuminate\Support\Facades\Validator;
 
 class MessageController extends ApiController
 {
-    public function __construct()
-    {
-        $this->middleware('auth:sanctum');
-    }
+    // public function __construct()
+    // {
+    //     $this->middleware('auth:sanctum');
+    // }
 
     /**
      * Get a list of conversations (latest message with each user).
@@ -93,7 +93,7 @@ class MessageController extends ApiController
         ]);
 
         if ($validator->fails()) {
-            return $this->sendError('Validation Error.', $validator->errors());
+            return $this->sendError('Validation Error.', $validator->errors()->toArray());
         }
 
         $senderId = Auth::id();

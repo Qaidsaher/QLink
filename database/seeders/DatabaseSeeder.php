@@ -47,7 +47,7 @@ class DatabaseSeeder extends Seeder
                     Like::factory(10)
                         ->for($post)
                         ->create([
-                            'user_id' => $allUsers->random()->id,
+                            // 'user_id' => $allUsers->random()->id,
                         ]);
                 });
         });

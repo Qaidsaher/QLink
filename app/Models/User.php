@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -81,5 +82,42 @@ class User extends Authenticatable
     {
         return $this->hasMany(Like::class);
     }
+
+    //    public function following()
+    // {
+    //     return $this->belongsToMany(User::class, 'follower_user', 'follower_id', 'user_id')
+    //                 ->withTimestamps();
+    // }
+
+    // // Users that are following this user
+    // public function followers()
+    // {
+    //     return $this->belongsToMany(User::class, 'follower_user', 'user_id', 'follower_id')
+    //                 ->withTimestamps();
+    // }
+
+    // Accessor for followers count (add to $appends if always needed)
+    public function getFollowersCountAttribute()
+    {
+        return $this->followers()->count();
+    }
+
+    // Accessor for following count (add to $appends if always needed)
+    public function getFollowingCountAttribute()
+    {
+        return $this->following()->count();
+    }
+
+    // Accessor to check if the authenticated user is following this user
+    // (add to $appends if always needed when fetching a user profile)
+    public function getIsFollowedByAuthUserAttribute()
+    {
+        if (!Auth::check()) {
+            return false;
+        }
+        // Check if the authenticated user's ID exists in this user's followers list
+        return $this->followers()->where('follower_id', Auth::id())->exists();
+    }
+    protected $appends = ['followers_count', 'following_count', 'is_followed_by_auth_user', /* existing appends like avatar_url */];
 
 }

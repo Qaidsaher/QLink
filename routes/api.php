@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\FollowerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -9,6 +10,7 @@ use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\LikeController;
 use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\SearchController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -62,13 +64,24 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/posts/{post}/like', [LikeController::class, 'store'])->name('api.posts.like');
     Route::delete('/posts/{post}/unlike', [LikeController::class, 'destroy'])->name('api.posts.unlike');
 
-
+    Route::middleware('auth:sanctum')->group(function () {
+        // ... (existing protected user routes)
+        Route::post('/users/{user}/follow', action: [FollowerController::class, 'follow'])->name('users.follow');
+        Route::delete('/users/{user}/unfollow', action: [FollowerController::class, 'unfollow'])->name('users.unfollow');
+    });
+    Route::get('/users/{user}/following', [FollowerController::class, 'getFollowing'])->name('users.following');
+    Route::get('/users/{user}/followers', [FollowerController::class, 'getFollowers'])->name('users.followers');
     // Messages
     Route::get('/messages/conversations', [MessageController::class, 'getConversations'])->name('api.messages.conversations');
     Route::get('/messages/with/{user}', [MessageController::class, 'getMessagesWithUser'])->name('api.messages.with_user');
     Route::post('/messages', [MessageController::class, 'sendMessage'])->name('api.messages.send');
     Route::put('/messages/{message}/read', [MessageController::class, 'markAsRead'])->name('api.messages.read');
     Route::delete('/messages/{message}', [MessageController::class, 'destroy'])->name('api.messages.destroy');
+    Route::prefix('search')->name('api.search.')->group(function () {
+        Route::get('/posts', [PostController::class, 'searchPosts'])->name('posts');
+        Route::get('/users', [UserController::class, 'searchUsers'])->name('users');
+        Route::get('/all', [SearchController::class, 'searchAll'])->name('all');
+    });
 });
 
 // Publicly Accessible Routes (No Authentication Needed)
@@ -82,8 +95,9 @@ Route::get('/comments/{comment}', [CommentController::class, 'show'])->name('api
 Route::get('/posts/{post}/liked-by', [LikeController::class, 'likedBy'])->name('api.posts.likedby'); // Get users who liked a post
 
 // Fallback route for 404 API errors
-Route::fallback(function(){
+Route::fallback(function () {
     return response()->json([
         'success' => false,
-        'message' => 'API endpoint not found.'], 404);
+        'message' => 'API endpoint not found.'
+    ], 404);
 });

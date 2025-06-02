@@ -49,10 +49,26 @@ class PostController extends ApiController
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
                 $path = $file->store('post_attachments', 'public');
+                $fileMime = $file->getMimeType();
+                $extension = strtolower($file->getClientOriginalExtension());
+                if (strpos($fileMime, 'image/') === 0) {
+                    $type = 'image';
+                } elseif (strpos($fileMime, 'video/') === 0) {
+                    $type = 'video';
+                } elseif ($extension === 'pdf') {
+                    $type = 'pdf';
+                } elseif (in_array($extension, ['doc', 'docx'])) {
+                    $type = 'doc';
+
+                } else {
+                    $type = 'other';
+                }
                 $post->attachments()->create([
                     'file_path' => $path,
-                    'file_type' => $file->getClientMimeType(),
+                    'file_type' => $type,
                 ]);
+
+
             }
         }
         $post->load(['user', 'attachments', 'comments', 'likes']); // Reload with relations
@@ -98,6 +114,38 @@ class PostController extends ApiController
         return $this->sendResponse($post, 'Post updated successfully.');
     }
 
+     public function searchPosts(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'query' => 'required|string|min:2|max:100', // Validate the search query
+        ]);
+
+        if ($validator->fails()) {
+
+            return $this->sendError('Validation Error.', $validator->errors()->toArray());
+        }
+
+        $query = $request->input('query');
+
+        // Perform the search on the 'content' column.
+        // You can extend this to search in user names, tags (if you add them), etc.
+        $posts = Post::where('content', 'LIKE', "%{$query}%")
+            // If you want to search by associated user's name or username as well:
+            // ->orWhereHas('user', function ($userQuery) use ($query) {
+            //     $userQuery->where('name', 'LIKE', "%{$query}%")
+            //               ->orWhere('username', 'LIKE', "%{$query}%");
+            // })
+            ->with(['user', 'attachments']) // Eager load necessary relationships
+            ->withCount(['comments', 'likes']) // Get counts
+            ->latest() // Order by newest first, or by relevance if you implement a more complex search
+            ->paginate(15); // Paginate the results
+
+        if ($posts->isEmpty()) {
+            return $this->sendResponse([], 'No posts found matching your query.');
+        }
+
+        return $this->sendResponse($posts, 'Posts retrieved successfully based on your query.');
+    }
     /**
      * Remove the specified resource from storage.
      */

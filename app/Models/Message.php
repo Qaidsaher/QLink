@@ -9,9 +9,20 @@ class Message extends Model
 {
     /** @use HasFactory<\Database\Factories\MessageFactory> */
     use HasFactory;
+    use HasFactory;
+
     protected $fillable = [
-        'sender_id', 'receiver_id', 'message', 'is_read'
+        'sender_id',
+        'receiver_id',
+        'message',
+        'is_read',
     ];
+
+    protected $casts = [
+        'is_read' => 'boolean',
+    ];
+
+    protected $with = ['sender', 'receiver'];
 
     public function sender()
     {

@@ -121,6 +121,35 @@ class UserController extends ApiController
         return $this->sendResponse([], 'Password updated successfully.');
     }
 
+    public function searchUsers(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'query' => 'required|string|min:2|max:100',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation Error.', $validator->errors()->toArray());
+        }
+
+        $query = $request->input('query');
+
+        // Search by name, username. Optionally email if it makes sense for your app's privacy.
+        $users = User::where(function ($q) use ($query) {
+            $q->where('name', 'LIKE', "%{$query}%")
+                ->orWhere('username', 'LIKE', "%{$query}%");
+            // ->orWhere('email', 'LIKE', "%{$query}%"); // Uncomment if you want to search by email
+        })
+            ->select(['id', 'name', 'username', 'avatar', 'bio']) // Select only necessary fields
+            ->paginate(15); // Paginate the results
+
+        if ($users->isEmpty()) {
+            return $this->sendResponse([], 'No users found matching your query.');
+        }
+
+        return $this->sendResponse($users, 'Users retrieved successfully based on your query.');
+    }
+
+
     /**
      * (Admin) Update user details.
      */
@@ -134,10 +163,19 @@ class UserController extends ApiController
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|required|string|max:255',
             'username' => [
-                'sometimes', 'required', 'string', 'max:255', Rule::unique('users')->ignore($user->id),
+                'sometimes',
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('users')->ignore($user->id),
             ],
             'email' => [
-                'sometimes', 'required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id),
+                'sometimes',
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users')->ignore($user->id),
             ],
             'bio' => 'nullable|string|max:1000',
             'role' => ['sometimes', 'required', Rule::in(['user', 'moderator', 'admin'])],
@@ -163,10 +201,12 @@ class UserController extends ApiController
             return $this->sendForbidden('Only admins can perform this action.');
         }
         if ($user->id === Auth::id()) {
-             return $this->sendError('Admin cannot delete their own account this way.', [], 403);
+            return $this->sendError('Admin cannot delete their own account this way.', [], 403);
         }
 
         $user->delete(); // Consider soft deletes if needed
         return $this->sendResponse([], 'User deleted successfully by admin.');
     }
+
+    
 }

@@ -113,6 +113,7 @@ class MessageController extends ApiController
             'sender_id' => $senderId,
             'receiver_id' => $receiverId,
             'message' => $request->message,
+            'is_read' => false, 
         ]);
         $message->load(['sender', 'receiver']);
 

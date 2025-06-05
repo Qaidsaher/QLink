@@ -26,6 +26,15 @@ class Attachment extends Model
     {
         return Storage::url($this->file_path); // Prepends /storage/ to the path
     }
+   
 
+    public function fileUrl(): string
+    {
+        return Storage::url($this->file_path);
+    }
+    public function fileName(): string
+    {
+        return $this->file_name ?? basename($this->file_path);
+    }
     protected $appends = ['file_url'];
 }

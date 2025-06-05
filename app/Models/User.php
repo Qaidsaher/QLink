@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable,HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -24,7 +25,9 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
-        'role', 'bio', 'avatar'
+        'role',
+        'bio',
+        'avatar'
     ];
 
     /**
@@ -49,36 +52,36 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-     // User can have many posts.
-     public function posts()
-     {
-         return $this->hasMany(Post::class);
-     }
-     public function comments()
-     {
-         return $this->hasMany(Comment::class);
-     }
-     public function sentMessages()
-     {
-         return $this->hasMany(Message::class, 'sender_id');
-     }
+    // User can have many posts.
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+    public function sentMessages()
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
 
-     public function receivedMessages()
-     {
-         return $this->hasMany(Message::class, 'receiver_id');
-     }
+    public function receivedMessages()
+    {
+        return $this->hasMany(Message::class, 'receiver_id');
+    }
 
-     public function followers()
-     {
-         return $this->belongsToMany(User::class, 'followers', 'following_id', 'follower_id');
-     }
+    public function followers()
+    {
+        return $this->belongsToMany(User::class, 'followers', 'following_id', 'follower_id');
+    }
 
-     public function following()
-     {
-         return $this->belongsToMany(User::class, 'followers', 'follower_id', 'following_id');
-     }
+    public function following()
+    {
+        return $this->belongsToMany(User::class, 'followers', 'follower_id', 'following_id');
+    }
 
-     public function likes()
+    public function likes()
     {
         return $this->hasMany(Like::class);
     }
@@ -119,5 +122,15 @@ class User extends Authenticatable
         return $this->followers()->where('follower_id', Auth::id())->exists();
     }
     protected $appends = ['followers_count', 'following_count', 'is_followed_by_auth_user', /* existing appends like avatar_url */];
-
+    // Accessor for avatar URL
+    public function avatarUrl(): string
+    {
+        return $this->avatar
+            ? Storage::url($this->avatar)
+            : 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF'; // Fallback
+    }
+    public function isFollowing(User $user)
+    {
+        return $this->followings()->where('following_id', $user->id)->exists();
+    }
 }

@@ -11,10 +11,11 @@ class Post extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'content'
+        'user_id',
+        'content'
     ];
 
-      protected $with = ['user', 'attachments', 'comments', 'likes']; // Eager load common relationships
+    protected $with = ['user', 'attachments', 'comments', 'likes']; // Eager load common relationships
 
     public function user()
     {
@@ -51,5 +52,15 @@ class Post extends Model
         return false;
     }
 
+    public function isLikedBy(?User $user): bool
+    {
+        if (!$user) return false;
+        return $this->likes()->where('user_id', $user->id)->exists();
+    }
+
+    public function getCommentsCountAttribute(): int
+    {
+        return $this->comments()->count();
+    }
     protected $appends = ['likes_count', 'is_liked'];
 }

@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\LikeController;
 use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\SearchController;
 
 Route::get('/user', function (Request $request) {
@@ -82,6 +83,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/users', [UserController::class, 'searchUsers'])->name('users');
         Route::get('/all', [SearchController::class, 'searchAll'])->name('all');
     });
+
+        // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('api.notifications.index');
+    Route::post('/notifications/{id}/mark-read', [NotificationController::class, 'markRead'])->name('api.notifications.markRead');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('api.notifications.markAllRead');
+
+
 });
 
 // Publicly Accessible Routes (No Authentication Needed)

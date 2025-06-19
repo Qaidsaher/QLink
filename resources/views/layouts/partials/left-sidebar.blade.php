@@ -30,10 +30,10 @@
                 <span x-show="sidebarOpen" :class="{'hidden lg:inline': sidebarOpen}">Messages</span>
             </x-sidebar-nav-link>
             @auth
-            <x-sidebar-nav-link :href="route('profile.show', Auth::user()->username)" :active="request()->routeIs('profile.show') && request()->route('user') && request()->route('user')->id === Auth::id()">
+            {{-- <x-sidebar-nav-link :href="route('profile.show', Auth::user()->username)" :active="request()->routeIs('profile.show') && request()->route('user') && request()->route('user')->id === Auth::id()">
                 <i class="text-lg transition-transform far fa-user fa-fw group-hover:scale-110" :class="sidebarOpen ? 'lg:mr-3' : 'mx-auto'"></i>
                 <span x-show="sidebarOpen" :class="{'hidden lg:inline': sidebarOpen}">Profile</span>
-            </x-sidebar-nav-link>
+            </x-sidebar-nav-link> --}}
             @endauth
 
             <!-- Post Button -->
@@ -66,7 +66,6 @@
                 <p class="text-sm font-semibold text-gray-800 truncate dark:text-gray-100">{{ Auth::user()->name }}</p>
                 <p class="text-xs text-gray-500 truncate dark:text-gray-400">{{ '@'.Auth::user()->username }}</p>
             </div>
-            {{-- More options for user can be a dropdown here --}}
         </a>
         @else
          <div class="flex flex-col space-y-1" :class="!sidebarOpen ? 'items-center' : ''">

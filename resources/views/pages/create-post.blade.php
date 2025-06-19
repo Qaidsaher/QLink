@@ -9,7 +9,6 @@
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             <div class="overflow-hidden bg-white shadow-xl dark:bg-gray-800 sm:rounded-lg">
                 <div class="p-6 sm:p-8">
-                    @livewire('create-post-form')
                 </div>
             </div>
         </div>

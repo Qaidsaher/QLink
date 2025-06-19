@@ -29,6 +29,9 @@ class User extends Authenticatable
         'bio',
         'avatar'
     ];
+    protected $casts = [
+        'created_at' => 'datetime',
+    ];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -131,6 +134,16 @@ class User extends Authenticatable
     }
     public function isFollowing(User $user)
     {
-        return $this->followings()->where('following_id', $user->id)->exists();
+        return $this->following()->where('following_id', $user->id)->exists();
+    }
+    // In app/Models/User.php
+    public function getCoverPhotoUrlAttribute(): ?string
+    {
+        return $this->cover_photo_path ? Storage::url($this->cover_photo_path) : null; // Or a default cover URL
+    }
+    // In app/Models/User.php
+    public static function defaultAvatarUrlPlaceholder(string $name = 'User'): string
+    {
+        return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&color=7F9CF5&background=EBF4FF&bold=true&format=svg&size=128';
     }
 }

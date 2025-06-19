@@ -10,9 +10,9 @@
         <span class="absolute block w-2 h-2 bg-red-500 rounded-full top-2 right-2 ring-2 ring-white dark:ring-gray-800"></span>
     </a>
     @auth
-    <a href="{{ route('profile.show', Auth::user()->username) }}" class="{{ request()->routeIs('profile.show') && request()->route('user') && request()->route('user')->id === Auth::id() ? 'text-primary-DEFAULT' : 'text-gray-500 dark:text-gray-400' }} p-3 flex flex-col items-center hover:text-primary-DEFAULT">
+    {{-- <a href="{{ route('profile.show', Auth::user()->username) }}" class="{{ request()->routeIs('profile.show') && request()->route('user') && request()->route('user')->id === Auth::id() ? 'text-primary-DEFAULT' : 'text-gray-500 dark:text-gray-400' }} p-3 flex flex-col items-center hover:text-primary-DEFAULT">
         <i class="far fa-user fa-lg"></i> <span class="text-[10px] mt-0.5">Profile</span>
-    </a>
+    </a> --}}
     @else
     <a href="{{ route('login') }}" class="flex flex-col items-center p-3 text-gray-500 dark:text-gray-400 hover:text-primary-DEFAULT">
         <i class="fas fa-sign-in-alt fa-lg"></i> <span class="text-[10px] mt-0.5">Login</span>

@@ -23,6 +23,12 @@ class DatabaseSeeder extends Seeder
             'email'    => 'saherqaid@gmail.com',         // known email
             'password' => bcrypt('password'),        // known password (use "secretpassword" to log in)
         ]);
+         $knownUser = User::factory()->create([
+            'name' => 'wafa',
+            'username' => 'wafaa',                     // known username
+            'email'    => 'wafa@gmail.com',         // known email
+            'password' => bcrypt('password'),        // known password (use "secretpassword" to log in)
+        ]);
 
         // Create 9 additional users for a total of 10 users, including the known user
         $otherUsers = User::factory(9)->create();

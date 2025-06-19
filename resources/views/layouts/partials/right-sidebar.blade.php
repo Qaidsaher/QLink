@@ -10,6 +10,9 @@
             class="block w-full py-2 pl-10 pr-3 text-sm placeholder-gray-400 border border-gray-300 rounded-full dark:border-gray-700 focus:outline-none focus:ring-1 focus:ring-primary-DEFAULT focus:border-primary-DEFAULT bg-gray-50 dark:bg-gray-800"
             placeholder="Search SaherConnect">
     </div>
+    {{-- In layouts/app.blade.php (e.g., in the header) --}}
+    @livewire('global-search')
+
 
     <!-- Trends for you -->
     <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">

@@ -46,8 +46,8 @@ class Post extends Model
     // Accessor to check if authenticated user liked the post
     public function getIsLikedAttribute()
     {
-        if (auth()->check()) {
-            return $this->likes()->where('user_id', auth()->id())->exists();
+        if (\Illuminate\Support\Facades\Auth::check()) {
+            return $this->likes()->where('user_id', \Illuminate\Support\Facades\Auth::id())->exists();
         }
         return false;
     }
@@ -62,5 +62,19 @@ class Post extends Model
     {
         return $this->comments()->count();
     }
+
     protected $appends = ['likes_count', 'is_liked'];
+    public function getHashtags(): array
+    {
+        if (empty($this->content)) {
+            return [];
+        }
+
+        // Regex to find hashtags: # followed by word characters (alphanumeric + underscore)
+        preg_match_all('/#([\p{L}\p{N}_]+)/u', $this->content, $matches);
+
+        // $matches[1] will contain the hashtag text without the #
+        // Convert to lowercase for consistent counting
+        return array_map('strtolower', $matches[1] ?? []);
+    }
 }

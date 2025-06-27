@@ -8,13 +8,11 @@
                 if (value.length < 2) {
                     this.showResults = false;
                     this.selectedResult = -1;
-                } else {
-                    // Livewire's updatedQuery will set showResults if there are results
                 }
             });
             this.$watch('showResults', value => {
-                if(value) {
-                    this.resultsCount = this.$refs.resultsList ? this.$refs.resultsList.children.length : 0;
+                if (value) {
+                    this.resultsCount = this.$refs.resultsList ? Array.from(this.$refs.resultsList.children).filter(el => el.tagName === 'LI' && el.querySelector('a')).length : 0;
                 } else {
                     this.selectedResult = -1;
                 }
@@ -27,6 +25,7 @@
         navigateResults(event) {
             if (!this.showResults || this.resultsCount === 0) return;
             const items = Array.from(this.$refs.resultsList.children).filter(el => el.tagName === 'LI' && el.querySelector('a'));
+            if (items.length === 0) return;
 
             if (event.key === 'ArrowDown') {
                 event.preventDefault();
@@ -46,13 +45,13 @@
         }
     }"
     @click.away="closeResults()"
-    class="relative w-full max-w-md mx-auto" {{-- Adjust width as needed --}}
+    class="relative w-full"
     role="search">
 
-    {{-- Search Input --}}
+    {{-- Search Input (X.com style) --}}
     <div class="relative">
         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <svg class="w-5 h-5 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
             </svg>
         </div>
@@ -62,18 +61,13 @@
             @focus="if (query.length >= 2) showResults = true"
             @keydown="navigateResults"
             type="search"
-            name="search"
-            id="globalSearchInput"
             autocomplete="off"
-            class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-full leading-5 bg-white dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 focus:outline-none focus:placeholder-gray-400 dark:focus:placeholder-gray-500 focus:ring-1 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400 sm:text-sm shadow-sm"
-            placeholder="Search users or posts...">
+            class="block w-full py-2.5 pl-10 pr-10 text-sm text-gray-900 placeholder-gray-500 bg-gray-100 border-transparent rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-900 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:bg-slate-900"
+            placeholder="Search">
 
-        <div x-show="query.length > 0" class="absolute inset-y-0 right-0 flex items-center pr-3">
-            <button @click="query = ''; $wire.resetResults(); $refs.searchInput.focus();" type="button" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none">
-                <span class="sr-only">Clear search</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 101.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                </svg>
+        <div x-show="query.length > 0" x-transition class="absolute inset-y-0 right-0 flex items-center pr-2">
+            <button @click="query = ''; $wire.resetResults(); $refs.searchInput.focus();" type="button" class="flex items-center justify-center w-5 h-5 text-gray-500 bg-blue-500 rounded-full hover:bg-blue-600 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
         </div>
     </div>
@@ -81,83 +75,74 @@
     {{-- Results Dropdown --}}
     <div x-show="showResults && query.length >= 2"
          x-transition:enter="transition ease-out duration-100"
-         x-transition:enter-start="opacity-0 scale-95"
-         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
          x-transition:leave="transition ease-in duration-75"
-         x-transition:leave-start="opacity-100 scale-100"
-         x-transition:leave-end="opacity-0 scale-95"
-         class="absolute z-30 w-full mt-1 overflow-y-auto bg-white border border-gray-200 rounded-md shadow-2xl dark:bg-gray-800 max-h-96 dark:border-gray-700"
-         style="display: none;" {{-- X-cloak is also good here for initial load --}}
-         >
-        <ul x-ref="resultsList" class="divide-y divide-gray-100 dark:divide-gray-700" role="listbox">
-            {{-- Users Section --}}
-            @if($users->isNotEmpty())
-                <li class="px-4 py-2 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
-                    Users
-                </li>
-                @foreach($users as $userResult)
-                    <li wire:key="user-{{ $userResult->id }}" role="option" :aria-selected="selectedResult === ({{ $loop->index }} + 0)"> {{-- Adjust index if other sections are before users --}}
-                        <a href="{{ route('profile.show', ['user' => $userResult->username]) }}" {{-- Assuming 'profile.show' takes username --}}
-                           class="block px-4 py-3 text-sm text-gray-700 transition-colors duration-150 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 focus:outline-none">
-                            <div class="flex items-center">
-                                <img src="{{ $userResult->avatar_url }}" alt="{{ $userResult->name }}" class="object-cover w-8 h-8 mr-3 rounded-full">
-                                <div>
-                                    <p class="font-medium text-gray-900 dark:text-white">{{ $userResult->name }}</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">@<span>{{ $userResult->username }}</span></p>
-                                </div>
-                            </div>
-                        </a>
-                    </li>
-                @endforeach
-            @endif
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="absolute z-30 w-full mt-2 overflow-hidden bg-white border border-gray-200 shadow-lg rounded-2xl dark:bg-slate-900 dark:border-slate-700"
+         style="display: none;">
 
-            {{-- Posts Section --}}
-            @if($posts->isNotEmpty())
-                <li class="px-4 py-2 text-xs font-semibold tracking-wider text-gray-500 uppercase border-t border-gray-100 dark:text-gray-400 dark:border-gray-700">
-                    Posts
-                </li>
-                @foreach($posts as $postResult)
-                    <li wire:key="post-{{ $postResult->id }}" role="option" :aria-selected="selectedResult === ({{ $loop->index }} + {{ $users->count() }})">
-                        <a href="#" {{-- Link to individual post page: route('posts.show', $postResult->id) --}}
-                           class="block px-4 py-3 text-sm text-gray-700 transition-colors duration-150 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 focus:outline-none">
-                            <div class="flex items-start space-x-2.5">
-                                <img src="{{ $postResult->user->avatarUrl() }}" alt="{{ $postResult->user->name }}" class="h-8 w-8 rounded-full object-cover flex-shrink-0 mt-0.5">
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center justify-between text-xs">
-                                        <span class="font-medium text-gray-800 truncate dark:text-gray-100">{{ $postResult->user->name }}</span>
-                                        <span class="text-gray-400 dark:text-gray-500">{{ $postResult->created_at->diffForHumans(null, true, true) }}</span> {{-- short diff --}}
-                                    </div>
-                                    <p class="mt-0.5 text-gray-600 dark:text-gray-300 text-sm leading-snug clamp-2">
-                                        {{ Str::limit(strip_tags($postResult->content), 120) }}
-                                    </p>
-                                </div>
+        <div wire:loading wire:target="query" class="w-full p-4 text-sm text-center text-gray-500 dark:text-gray-400">
+            Searching...
+        </div>
+
+        <ul x-ref="resultsList" wire:loading.remove wire:target="query" role="listbox">
+
+            {{-- Unified List: "Search for..." Link --}}
+            <li wire:key="search-for-query" role="option">
+                <a href="{{-- route('search.view', ['query' => $query]) --}}"
+                   class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-700 transition-colors dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 focus:bg-gray-100 dark:focus:bg-slate-800 focus:outline-none">
+                    <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path></svg>
+                    Search for "<span class="font-bold">{{ $query }}</span>"
+                </a>
+            </li>
+
+            {{-- Users Results --}}
+            @foreach($users as $userResult)
+                <li wire:key="user-{{ $userResult->id }}" role="option" :aria-selected="selectedResult === ({{ $loop->index }} + 1)">
+                    <a href="{{ route('profile.show', ['user' => $userResult->username]) }}" wire:navigate
+                       class="block px-4 py-3 text-sm transition-colors dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 focus:bg-gray-100 dark:focus:bg-slate-800 focus:outline-none">
+                        <div class="flex items-center">
+                            <img src="{{ $userResult->avatar_url }}" alt="{{ $userResult->name }}" class="object-cover w-10 h-10 mr-3 rounded-full">
+                            <div>
+                                <p class="font-bold text-gray-900 dark:text-white">{{ $userResult->name }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">@<span>{{ $userResult->username }}</span></p>
                             </div>
-                        </a>
-                    </li>
-                @endforeach
-            @endif
+                        </div>
+                    </a>
+                </li>
+            @endforeach
+
+            {{-- Posts Results --}}
+            @foreach($posts as $postResult)
+                <li wire:key="post-{{ $postResult->id }}" role="option" :aria-selected="selectedResult === ({{ $loop->index }} + {{ $users->count() }} + 1)">
+                    <a href="{{ route('posts.show', $postResult->id) }}" wire:navigate
+                       class="block px-4 py-3 text-sm transition-colors dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 focus:bg-gray-100 dark:focus:bg-slate-800 focus:outline-none">
+                        <div class="flex items-start space-x-3">
+                            <img src="{{ $postResult->user->avatarUrl() }}" alt="{{ $postResult->user->name }}" class="flex-shrink-0 object-cover w-8 h-8 rounded-full">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-baseline space-x-2 text-xs">
+                                    <p class="font-bold text-gray-900 truncate dark:text-white">{{ $postResult->user->name }}</p>
+                                    <p class="text-gray-500 truncate dark:text-gray-400">@<span>{{ $postResult->user->username }}</span></p>
+                                    <p class="text-gray-500 dark:text-gray-400">&middot;</p>
+                                    <p class="flex-shrink-0 text-gray-500 dark:text-gray-400">{{ $postResult->created_at->diffForHumans(null, true) }}</p>
+                                </div>
+                                <p class="mt-1 text-gray-700 dark:text-gray-300 clamp-2">{{ $postResult->content }}</p>
+                            </div>
+                        </div>
+                    </a>
+                </li>
+            @endforeach
 
             {{-- No Results Message --}}
             @if($query && strlen($query) >= 2 && $users->isEmpty() && $posts->isEmpty() && $showResults)
-                <li class="px-4 py-4 text-sm text-center text-gray-500 dark:text-gray-400">
-                    No results found for "<strong class="text-gray-700 dark:text-gray-200">{{ $query }}</strong>".
-                </li>
-            @endif
-
-            {{-- View All Results Link --}}
-            @if(($users->isNotEmpty() || $posts->isNotEmpty()) && strlen($query) >=2)
-                <li class="border-t border-gray-100 dark:border-gray-700">
-                    <button wire:click="viewAllResults" type="button"
-                       class="block w-full px-4 py-3 text-sm font-medium text-left text-indigo-600 transition-colors duration-150 dark:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 focus:outline-none">
-                        View all results for "<strong class="text-indigo-700 dark:text-indigo-300">{{ $query }}</strong>"
-                    </button>
+                <li class="px-4 py-10 text-sm text-center text-gray-500 dark:text-gray-400">
+                    <p class="font-bold">No results for "{{ $query }}"</p>
+                    <p class="mt-1">Try searching for something else.</p>
                 </li>
             @endif
         </ul>
-    </div>
-    {{-- For a simple "Loading..." indicator when Livewire is fetching: --}}
-    <div wire:loading wire:target="query" class="absolute z-30 w-full p-4 mt-1 text-sm text-center text-gray-500 bg-white border border-gray-200 rounded-md shadow-lg dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700">
-        Searching...
     </div>
 </div>
 

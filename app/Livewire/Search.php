@@ -127,7 +127,7 @@ class Search extends Component
         }
         return new LengthAwarePaginator([], 0, 15, 1, ['pageName' => 'hashtagsPage']);
     }
-    #[Title('seaerch results for :query')]
+   
 
     public function render()
     {

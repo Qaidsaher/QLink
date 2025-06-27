@@ -12,7 +12,7 @@ use Livewire\WithPagination;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Livewire\Attributes\Title;
 
-#[Title('show profile of :user.name')]
+
 
 class UserProfile extends Component
 {

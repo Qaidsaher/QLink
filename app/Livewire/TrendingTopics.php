@@ -10,8 +10,8 @@ use Illuminate\Support\Collection;
 class TrendingTopics extends Component
 {
     public Collection $trends; // Use Eloquent/Support Collection
-    public int $initialCount = 5; // Number of trends to show initially
-    public int $loadMoreCount = 5; // Number of trends to load on "show more"
+    public int $initialCount = 3; // Number of trends to show initially
+    public int $loadMoreCount = 3; // Number of trends to load on "show more"
     public int $displayCount;
     public bool $hasMoreTrends = true;
     public string $timePeriod = 'week'; // 'day', 'week', 'month', 'all'

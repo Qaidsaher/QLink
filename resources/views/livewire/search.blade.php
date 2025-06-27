@@ -1,203 +1,115 @@
 <div>
-    {{-- Main container for the search component's content --}}
-    <div class="container px-4 py-8 mx-auto sm:px-6 lg:px-8">
-
-        {{-- Search Input Bar --}}
-        <div class="mb-8">
-            <div class="relative max-w-2xl mx-auto">
-                <input
-                    wire:model.live.debounce.500ms="query"
-                    type="search"
-                    placeholder="Search for users, posts, or #hashtags..."
-                    aria-label="Search"
-                    class="w-full px-4 py-3 pr-12 text-sm text-gray-800 bg-white border border-gray-300 rounded-full shadow-sm dark:text-slate-100 dark:bg-slate-700 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
-                />
-                <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-                    <svg wire:loading wire:target="query" class="w-5 h-5 text-gray-400 animate-spin dark:text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <svg wire:loading.remove wire:target="query" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+    {{-- Sticky Header with Search and Tabs --}}
+    <header class="sticky top-0 z-20 border-b border-gray-200 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm dark:border-slate-700">
+        <div class="container px-4 mx-auto sm:px-6 lg:px-8">
+            {{-- Search Input Bar --}}
+            <div class="py-4">
+                <div class="relative max-w-2xl mx-auto">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                         <svg wire:loading.remove wire:target="query" class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg>
+                         <svg wire:loading wire:target="query" class="w-5 h-5 text-gray-400 animate-spin dark:text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    </div>
+                    <input
+                        wire:model.live.debounce.500ms="query"
+                        type="search"
+                        placeholder="Search"
+                        class="block w-full py-2.5 pl-12 pr-4 text-sm text-gray-900 placeholder-gray-500 bg-gray-100 border-transparent rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:bg-slate-800 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:bg-slate-900"
+                    />
                 </div>
             </div>
-        </div>
 
-        {{-- Header: Search Status --}}
-        <header class="mb-6 text-center sm:text-left">
+            {{-- Filter Tabs --}}
             @if (!empty($query))
-                <h1 class="mb-1 text-2xl font-bold text-gray-800 sm:text-3xl dark:text-slate-100">
-                    Results for: "<span class="text-blue-600 dark:text-blue-400">{{ Str::limit($query, 50) }}</span>"
-                </h1>
-                {{-- Only show count if there's a query and some results OR if specific collections have items --}}
-                @if ($totalResultsCount > 0 || $usersResults->isNotEmpty() || $postsResults->isNotEmpty() || $hashtagsResults->isNotEmpty())
-                    <p class="text-sm text-gray-600 dark:text-slate-400">
-                        Found {{ $totalResultsCount }} {{ Str::plural('result', $totalResultsCount) }} for your search.
-                    </p>
-                @endif
-            @else
-                <h1 class="mb-2 text-2xl font-bold text-gray-800 sm:text-3xl dark:text-slate-100">
-                    Search The Platform
-                </h1>
-                <p class="text-gray-600 dark:text-slate-400">Enter a term above to find users, posts, or topics.</p>
+            <nav class="flex justify-around" aria-label="Tabs">
+                <button wire:click="setFilterType(null)" class="w-full py-3 text-sm font-semibold text-center transition-colors {{ is_null($filterType) ? 'border-b-2 border-blue-500 text-slate-900 dark:text-white' : 'text-slate-500 hover:bg-gray-200 dark:text-slate-400 dark:hover:bg-slate-800' }}">
+                    Top
+                </button>
+                <button wire:click="setFilterType('posts')" @disabled($postsResults->total() === 0) class="w-full py-3 text-sm font-semibold text-center transition-colors {{ $filterType === 'posts' ? 'border-b-2 border-blue-500 text-slate-900 dark:text-white' : 'text-slate-500 hover:bg-gray-200 dark:text-slate-400 dark:hover:bg-slate-800' }} disabled:opacity-50">
+                    Latest
+                </button>
+                <button wire:click="setFilterType('users')" @disabled($usersResults->total() === 0) class="w-full py-3 text-sm font-semibold text-center transition-colors {{ $filterType === 'users' ? 'border-b-2 border-blue-500 text-slate-900 dark:text-white' : 'text-slate-400 dark:hover:bg-slate-800' }} disabled:opacity-50">
+                    People
+                </button>
+                <button wire:click="setFilterType('hashtags')" @disabled($hashtagsResults->total() === 0) class="w-full py-3 text-sm font-semibold text-center transition-colors {{ $filterType === 'hashtags' ? 'border-b-2 border-blue-500 text-slate-900 dark:text-white' : 'text-slate-500 hover:bg-gray-200 dark:text-slate-400 dark:hover:bg-slate-800' }} disabled:opacity-50">
+                    Tags
+                </button>
+            </nav>
             @endif
         </header>
+    </header>
 
-        {{-- Main Content Area: Tabs and Results (only if query is present) --}}
-        @if (!empty($query))
-            {{-- Filter Tabs --}}
-            <div class="mb-6 border-b border-gray-200 dark:border-slate-700">
-                <nav class="flex flex-wrap -mb-px sm:space-x-6" aria-label="Tabs">
-                    <button wire:click="setFilterType(null)"
-                        class="whitespace-nowrap py-3 px-2 sm:px-1 border-b-2 font-medium text-sm transition-colors duration-150 ease-in-out {{ is_null($filterType) ? 'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-300' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:border-slate-600' }}">
-                        All
-                    </button>
-                    <button wire:click="setFilterType('users')" @if($usersResults->total() === 0 && !is_null($filterType) && $filterType !== 'users') disabled @endif
-                        class="whitespace-nowrap py-3 px-2 sm:px-1 border-b-2 font-medium text-sm transition-colors duration-150 ease-in-out {{ $filterType === 'users' ? 'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-300' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:border-slate-600 disabled:opacity-50 disabled:cursor-not-allowed' }}">
-                        Users <span class="hidden sm:inline text-xs {{ $filterType === 'users' ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-slate-500' }}">({{ $usersResults->total() }})</span>
-                    </button>
-                    <button wire:click="setFilterType('posts')" @if($postsResults->total() === 0 && !is_null($filterType) && $filterType !== 'posts') disabled @endif
-                        class="whitespace-nowrap py-3 px-2 sm:px-1 border-b-2 font-medium text-sm transition-colors duration-150 ease-in-out {{ $filterType === 'posts' ? 'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-300' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:border-slate-600 disabled:opacity-50 disabled:cursor-not-allowed' }}">
-                        Posts <span class="hidden sm:inline text-xs {{ $filterType === 'posts' ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-slate-500' }}">({{ $postsResults->total() }})</span>
-                    </button>
-                    <button wire:click="setFilterType('hashtags')" @if($hashtagsResults->total() === 0 && !is_null($filterType) && $filterType !== 'hashtags') disabled @endif
-                        class="whitespace-nowrap py-3 px-2 sm:px-1 border-b-2 font-medium text-sm transition-colors duration-150 ease-in-out {{ $filterType === 'hashtags' ? 'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-300' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:border-slate-600 disabled:opacity-50 disabled:cursor-not-allowed' }}">
-                        Hashtags <span class="hidden sm:inline text-xs {{ $filterType === 'hashtags' ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-slate-500' }}">({{ $hashtagsResults->total() }})</span>
-                    </button>
-                </nav>
-            </div>
+    {{-- Main Content Area: Results --}}
+    <div class="container px-0 mx-auto sm:px-0 lg:px-0">
+        <div wire:loading.delay.class="opacity-50" wire:target="query, setFilterType" class="transition-opacity">
 
-            {{-- Results Sections with Loading State --}}
-            <div wire:loading.delay.class="transition-opacity opacity-50" wire:target="query, setFilterType">
-                {{-- User Results --}}
-                @if(is_null($filterType) || $filterType === 'users')
-                    @if($usersResults->isNotEmpty())
-                        <section class="mb-10">
-                            <h2 class="mb-4 text-xl font-semibold text-gray-700 dark:text-slate-200">Users</h2>
-                            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                                @foreach ($usersResults as $user)
-                                    <div class="p-5 transition-shadow duration-200 bg-white rounded-lg shadow-md dark:bg-slate-800 hover:shadow-lg">
-                                        <div class="flex items-center mb-3">
-                                            <a href="{{ route('profile.show', $user->username) }}">
-                                                <img src="{{ $user->avatarUrl() }}" alt="{{ $user->name }}" class="object-cover w-12 h-12 mr-4 rounded-full">
-                                            </a>
-                                            <div>
-                                                <a href="{{ route('profile.show', $user->username) }}" class="text-lg font-semibold text-gray-800 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400">{{ $user->name }}</a>
-                                                <p class="text-sm text-gray-500 dark:text-slate-400">@<span>{{ $user->username }}</span></p>
-                                            </div>
-                                        </div>
-                                        @if($user->bio)
-                                        <p class="mb-3 text-sm text-gray-600 dark:text-slate-300 line-clamp-2">{{ $user->bio }}</p>
-                                        @endif
-                                        <a href="{{ route('profile.show', $user->username) }}" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">View Profile</a>
+            {{-- Initial state before searching --}}
+            @if(empty($query))
+                <div class="p-10 text-center">
+                    <h2 class="text-lg font-bold text-gray-800 dark:text-slate-200">Try searching for people, posts, or keywords</h2>
+                    <p class="text-sm text-gray-500 dark:text-slate-400">Find what’s happening on the platform.</p>
+                </div>
+            @else
+                {{-- Unified Feed of Results --}}
+                <div class="border-t border-gray-200 dark:border-slate-700">
+
+                    {{-- User Results --}}
+                    @if(is_null($filterType) || $filterType === 'users')
+                        @foreach ($usersResults as $user)
+                            <div wire:key="user-result-{{ $user->id }}" class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800/50">
+                                <div class="flex items-center flex-1 min-w-0 gap-3">
+                                    <a href="{{ route('profile.show', $user->username) }}" wire:navigate><x-avatar :user="$user" /></a>
+                                    <div class="flex-1 min-w-0 leading-tight">
+                                        <a href="{{ route('profile.show', $user->username) }}" wire:navigate class="font-bold text-slate-800 dark:text-slate-200 hover:underline">{{ $user->name }}</a>
+                                        <p class="text-sm truncate text-slate-500 dark:text-slate-400">@<span>{{ $user->username }}</span></p>
                                     </div>
-                                @endforeach
-                            </div>
-                            @if ($usersResults->hasPages())
-                                <div class="mt-6">
-                                    {{ $usersResults->links() }}
                                 </div>
-                            @endif
-                        </section>
-                    @elseif($filterType === 'users' && !empty($query)) {{-- Show 'no users' only if 'users' filter is active --}}
-                        <p class="py-4 text-gray-600 dark:text-slate-400">No users found for "<span class="font-semibold">{{ $query }}</span>".</p>
-                    @endif
-                @endif
-
-                {{-- Post Results --}}
-                @if(is_null($filterType) || $filterType === 'posts')
-                     @if($postsResults->isNotEmpty())
-                        <section class="mb-10">
-                            <h2 class="mb-4 text-xl font-semibold text-gray-700 dark:text-slate-200">Posts</h2>
-                            <div class="space-y-6">
-                                @foreach ($postsResults as $post)
-                                    <article class="p-5 transition-shadow duration-200 bg-white rounded-lg shadow-md dark:bg-slate-800 hover:shadow-lg">
-                                        <div class="flex items-center mb-3">
-                                            <a href="{{ route('profile.show', $post->user->username) }}">
-                                                <img src="{{ $post->user->avatarUrl() }}" alt="{{ $post->user->name }}" class="object-cover w-10 h-10 mr-3 rounded-full">
-                                            </a>
-                                            <div>
-                                                <a href="{{ route('profile.show', $post->user->username) }}" class="font-semibold text-gray-800 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400">{{ $post->user->name }}</a>
-                                                <p class="text-xs text-gray-500 dark:text-slate-400">
-                                                    <a href="{{ route('posts.show', $post->id) }}">{{ $post->created_at->format('M d, Y \a\t h:i A') }}</a>
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="mb-3 text-sm prose text-gray-700 max-w-none dark:prose-invert dark:text-slate-300">
-                                            {!! Illuminate\Support\Str::markdown(Str::limit(strip_tags($post->content), 250)) !!}
-                                        </div>
-                                        @if($post->attachments->where('file_type', 'image')->isNotEmpty())
-                                            <div class="grid grid-cols-2 gap-2 mt-3 sm:grid-cols-3">
-                                                @foreach($post->attachments->where('file_type', 'image')->take(3) as $attachment)
-                                                    <a href="{{ route('posts.show', $post->id) }}">
-                                                        <img src="{{ $attachment->file_url_thumbnail ?? $attachment->file_url }}" alt="Post image" class="object-cover w-full rounded-md aspect-video sm:aspect-square">
-                                                    </a>
-                                                @endforeach
-                                            </div>
-                                        @endif
-                                        <div class="mt-4">
-                                            <a href="{{ route('posts.show', $post->id) }}" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">Read more →</a>
-                                        </div>
-                                    </article>
-                                @endforeach
-                            </div>
-                            @if ($postsResults->hasPages())
-                                <div class="mt-6">
-                                    {{ $postsResults->links() }}
-                                </div>
-                            @endif
-                        </section>
-                    @elseif($filterType === 'posts' && !empty($query)) {{-- Show 'no posts' only if 'posts' filter is active --}}
-                        <p class="py-4 text-gray-600 dark:text-slate-400">No posts found for "<span class="font-semibold">{{ $query }}</span>".</p>
-                    @endif
-                @endif
-
-                {{-- Hashtag Results --}}
-                @if(is_null($filterType) || $filterType === 'hashtags')
-                    @if($hashtagsResults->isNotEmpty())
-                        <section class="mb-10">
-                            <h2 class="mb-4 text-xl font-semibold text-gray-700 dark:text-slate-200">Hashtags</h2>
-                            <div class="flex flex-wrap gap-3">
-                                @foreach ($hashtagsResults as $hashtag)
-                                    <a href="{{ $hashtag->url }}" class="px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-100 rounded-full dark:bg-blue-700 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-600 transition-colors">
-                                        {{ $hashtag->name }} <span class="text-xs opacity-75">({{ $hashtag->posts_count }})</span>
+                                <div class="flex-shrink-0 ml-2">
+                                    {{-- You can add a follow button here if needed --}}
+                                    <a href="{{ route('profile.show', $user->username) }}" wire:navigate class="px-4 py-1.5 text-sm font-bold bg-slate-900 text-white dark:bg-slate-50 dark:text-black rounded-full hover:opacity-90 transition-opacity">
+                                        View
                                     </a>
-                                @endforeach
-                            </div>
-                             @if ($hashtagsResults->hasPages())
-                                <div class="mt-6">
-                                    {{ $hashtagsResults->links() }}
                                 </div>
-                            @endif
-                        </section>
-                    @elseif($filterType === 'hashtags' && !empty($query)) {{-- Show 'no hashtags' only if 'hashtags' filter is active --}}
-                         <p class="py-4 text-gray-600 dark:text-slate-400">No hashtags found for "<span class="font-semibold">{{ $query }}</span>".</p>
+                            </div>
+                        @endforeach
                     @endif
-                @endif
 
-                {{-- Overall "No Results" message if applicable --}}
-                @php
-                    $noUsersMatch = (is_null($filterType) || $filterType === 'users') && $usersResults->isEmpty();
-                    $noPostsMatch = (is_null($filterType) || $filterType === 'posts') && $postsResults->isEmpty();
-                    $noHashtagsMatch = (is_null($filterType) || $filterType === 'hashtags') && $hashtagsResults->isEmpty();
-                    $showOverallNoResultsMessage = $noUsersMatch && $noPostsMatch && $noHashtagsMatch;
-                @endphp
-                @if (!empty($query) && $showOverallNoResultsMessage)
-                    <div class="py-10 text-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto text-gray-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <h3 class="mt-2 text-lg font-medium text-gray-900 dark:text-slate-200">No results found</h3>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-slate-400">We couldn't find anything for "<span class="font-semibold">{{ Str::limit($query, 30) }}</span>". Try a different search term.</p>
-                    </div>
-                @endif
-            </div> {{-- End wire:loading --}}
-        @elseif(empty($query) && request()->filled('q'))
-            {{-- This handles the edge case where URL has 'q' but component's $query is empty somehow initially --}}
-             <div class="py-10 text-center">
-                <p class="mt-1 text-sm text-gray-500 dark:text-slate-400">Loading search results or enter a term above to begin.</p>
-            </div>
-        @endif
-    </div> {{-- End container --}}
+                    {{-- Posts Results --}}
+                    @if(is_null($filterType) || $filterType === 'posts')
+                        @foreach ($postsResults as $post)
+                             <div wire:key="post-result-{{ $post->id }}">
+                                {{-- Include your standard post item view. This makes your UI consistent. --}}
+                                @include('partials.posts._post-item', ['post' => $post])
+                             </div>
+                        @endforeach
+                    @endif
+
+                    {{-- Hashtag Results --}}
+                    @if(is_null($filterType) || $filterType === 'hashtags')
+                        @foreach ($hashtagsResults as $hashtag)
+                            <div wire:key="hashtag-result-{{ $hashtag->name }}" class="p-4 border-b border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800/50">
+                                <a href="{{ $hashtag->url }}" class="block">
+                                    <p class="font-bold text-gray-900 dark:text-white">{{ $hashtag->name }}</p>
+                                    <p class="text-sm text-gray-500 dark:text-slate-400">{{ $hashtag->posts_count }} {{ Str::plural('post', $hashtag->posts_count) }}</p>
+                                </a>
+                            </div>
+                        @endforeach
+                    @endif
+
+                    {{-- No Results Message --}}
+                    @if ($totalResultsCount === 0)
+                        <div class="px-4 py-16 text-center">
+                            <h2 class="text-xl font-bold text-gray-800 dark:text-slate-200">No results for "{{ Str::limit($query, 30) }}"</h2>
+                            <p class="mt-2 text-sm text-gray-500 dark:text-slate-400">The term you entered did not bring up any results. You may have mistyped your term.</p>
+                        </div>
+                    @endif
+
+                    {{-- Pagination: Styled to be less intrusive. Replace with a 'Load More' button for a true X.com feel. --}}
+                    @if($usersResults->hasPages() && $filterType === 'users') <div class="p-4">{{ $usersResults->links() }}</div> @endif
+                    @if($postsResults->hasPages() && $filterType === 'posts') <div class="p-4">{{ $postsResults->links() }}</div> @endif
+                    @if($hashtagsResults->hasPages() && $filterType === 'hashtags') <div class="p-4">{{ $hashtagsResults->links() }}</div> @endif
+
+                </div>
+            @endif
+        </div>
+    </div>
 </div>

@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Events\PostUpdated;
 use App\Models\Post;
 use App\Models\Attachment;
 use App\Notifications\UserNotification;
@@ -11,6 +12,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
+use phpDocumentor\Reflection\Types\Boolean;
 
 class PostCreate extends Component
 {
@@ -23,6 +25,18 @@ class PostCreate extends Component
 
     public int $maxAttachments = 5;
     public int $maxFileSize = 5120; // 5MB
+
+    public bool $isPage = false;
+    public function mount()
+    {
+        $routeName = request()->route()?->getName();
+
+        if ($routeName === 'posts.create') {
+            $this->isPage = true;
+        } else {
+            $this->isPage = false;
+        }
+    }
 
     protected function rules()
     {
@@ -156,9 +170,17 @@ class PostCreate extends Component
         }
 
         $this->resetForm();
-        Auth::user()->notify(instance: new UserNotification('created', $post, Auth::user()));
-        $this->dispatch('postCreated', $post->id);
-        session()->flash('success', 'Post created successfully!');
+        // broadcast(new PostUpdated($post, 'created'));
+        Auth::user()->notify(new UserNotification('post_created', $post, Auth::user()));
+
+        $this->dispatch('postCreated', postId: $post->id);
+        $this->js("
+            showToast({ 
+                type: 'success', 
+                title: 'Post Created!', 
+                message: 'Your new post is now live for everyone to see.' 
+            })
+        ");
     }
 
     // This method determines the type string stored in the DB

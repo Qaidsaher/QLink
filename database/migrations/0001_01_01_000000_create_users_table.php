@@ -21,6 +21,16 @@ return new class extends Migration
             $table->string('avatar')->nullable();
             $table->enum('role', ['user', 'moderator', 'admin'])->default('user');
             $table->text('bio')->nullable();
+            $table->string('google_id')->nullable()->unique();
+            $table->string('google_token')->nullable();
+            $table->string('google_refresh_token')->nullable();
+
+            $table->string('location', 50)->nullable();
+            $table->string('website', 100)->nullable();
+            $table->string('coverPhoto')->nullable(); // You may want to store just the path
+            $table->boolean('notify_new_follower')->default(true);
+            $table->boolean('notify_new_comment')->default(true);
+            $table->enum('messages_from', ['everyone', 'followers', 'no_one'])->default('everyone');
             $table->rememberToken();
             $table->timestamps();
         });

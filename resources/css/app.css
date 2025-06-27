@@ -2,3 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .skill-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
+
+  .project-tag {
+    @apply inline-block px-2 py-1 font-mono text-xs rounded-md bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300;
+  }
+}
+
+@layer utilities {
+
+  /* Animation for the progress bar */
+  @keyframes toast-progress {
+    from {
+      width: 100%;
+    }
+
+    to {
+      width: 0%;
+    }
+  }
+
+  /* Add the accent color bar using a pseudo-element */
+  .toast::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background-color: var(--toast-accent-color);
+  }
+}

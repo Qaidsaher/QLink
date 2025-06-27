@@ -27,11 +27,20 @@ class UserFactory extends Factory
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'username'          => $this->faker->unique()->userName,
-            'role'              => 'user',
-            'bio'               => $this->faker->sentence,
-            'avatar'            => $this->faker->imageUrl,
+            'password' => static::$password ??= Hash::make('password'), // still valid for local testing
+            'username' => fake()->unique()->userName,
+            'role' => 'user',
+            'bio' => fake()->sentence,
+            'location' => fake()->city,
+            'website' => fake()->url,
+            'avatar' => null,
+            'coverPhoto' => null,
+            'google_id' => null,
+            'google_token' => null,
+            'google_refresh_token' => null,
+            'notify_new_follower' => true,
+            'notify_new_comment' => true,
+            'messages_from' => 'everyone',
             'remember_token' => Str::random(10),
         ];
     }
@@ -41,7 +50,7 @@ class UserFactory extends Factory
      */
     public function unverified(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'email_verified_at' => null,
         ]);
     }

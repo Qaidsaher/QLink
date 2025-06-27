@@ -9,7 +9,6 @@ use Livewire\Attributes\Computed;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Notifications\DatabaseNotification;
 use Livewire\Attributes\Title;
-#[Title('Notifications')]
 class Notification extends Component
 {
     use WithPagination;
@@ -19,7 +18,7 @@ class Notification extends Component
     public function getListeners(): array
     {
         return [
-            "echo-private:App.Models.User." . auth()->id() . ",.Illuminate\\Notifications\\Events\\BroadcastNotificationCreated" => 'handleNewNotification',
+            "echo-private:App.Models.User." . Auth::id() . ",.Illuminate\\Notifications\\Events\\BroadcastNotificationCreated" => 'handleNewNotification',
         ];
     }
 

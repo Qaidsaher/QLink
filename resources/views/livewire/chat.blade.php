@@ -16,13 +16,13 @@
             }, 50);
         }
     }" x-init="init();" @chat-loaded.window="scrollToBottom()" @message-sent.window="scrollToBottom()"
-    class="flex flex-col h-screen bg-gray-50 dark:bg-slate-950">
+    class="flex flex-col h-screen custom-small-screen-height bg-gray-50 dark:bg-slate-950">
     @if($selectedConversation)
         <!-- Chat Header:
-                                - Added a subtle bottom shadow for depth.
-                                - Back button is now always visible (removed md:hidden).
-                                - Increased font weight for the name.
-                            -->
+                                    - Added a subtle bottom shadow for depth.
+                                    - Back button is now always visible (removed md:hidden).
+                                    - Increased font weight for the name.
+                                -->
         <header
             class="flex items-center flex-shrink-0 px-1 py-4 bg-white border-b border-gray-200 shadow-sm dark:border-slate-700 dark:bg-slate-950">
             <a href={{ route('messages') }} wire:navigate
@@ -45,9 +45,9 @@
         </header>
 
         <!-- Messages Area:
-                                - Increased padding for better spacing.
-                                - Redesigned message bubbles for a modern look.
-                            -->
+                                    - Increased padding for better spacing.
+                                    - Redesigned message bubbles for a modern look.
+                                -->
         <div wire:poll.5s x-ref="chatArea" class="flex-1 p-2 pt-6 overflow-y-auto no-scrollbar">
             <div class="space-y-4">
                 @foreach($this->chatMessages as $index => $message)
@@ -109,8 +109,9 @@
 
                                             @else
                                                 {{-- Single check (sent) --}}
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 text-gray-400 w-45 dark:text-gray-500"
-                                                    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                    class="h-5 text-gray-400 w-45 dark:text-gray-500" fill="none" viewBox="0 0 24 24"
+                                                    stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                                                 </svg>
                                             @endif
@@ -127,9 +128,9 @@
         </div>
 
         <!-- Input Area:
-                                - Added a subtle top shadow for separation.
-                                - Polished input and button styles.
-                            -->
+                                    - Added a subtle top shadow for separation.
+                                    - Polished input and button styles.
+                                -->
         <footer
             class="flex-shrink-0 p-4 bg-white border-t border-gray-200 dark:bg-slate-800 dark:border-slate-700 shadow-[0_-1px_4px_rgba(0,0,0,0.05)]">
             <form wire:submit.prevent="sendMessage" class="flex items-center gap-3">
@@ -157,9 +158,9 @@
         </footer>
     @else
         <!-- Empty State:
-                                - This is shown when no conversation is selected.
-                                - It now correctly fills the screen.
-                            -->
+                                    - This is shown when no conversation is selected.
+                                    - It now correctly fills the screen.
+                                -->
         <header
             class="flex items-center flex-shrink-0 px-1 py-4 bg-white border-b border-gray-200 shadow-sm dark:border-slate-700 dark:bg-slate-800">
             <button onclick="history.back()"

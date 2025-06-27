@@ -43,7 +43,7 @@ class Chat extends Component
     {
         // This logic is unchanged
         if (!$this->selectedConversation) {
-            return new Collection();
+            return new Collection([]);
         }
         return Message::where(fn($q) => $q->where('sender_id', Auth::id())->where('receiver_id', $this->selectedConversation->id))
             ->orWhere(fn($q) => $q->where('sender_id', $this->selectedConversation->id)->where('receiver_id', Auth::id()))

@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Events\PostActionEvent;
+use App\Events\PostUpdated;
 use App\Models\Post;
 use App\Models\User;
 use App\Models\Like;
@@ -12,11 +13,13 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Title;
 use Livewire\WithPagination; // For potential future pagination
+use Livewire\Attributes\On;
+
 #[Title('posts')]
 class Posts extends Component
 {
     // use WithPagination; // We'll use a "load more" approach initially
-
+    public $userId;
     public $posts; // Collection of posts
     public $perPage = 10; // Number of posts to load each time
     public $page = 1; // Current page for loading more
@@ -30,24 +33,29 @@ class Posts extends Component
     public $imageModalUrls = []; // Array of {url: string, originalPostId: int}
     public $currentImageModalIndex = 0;
 
-    protected $listeners = ['loadMorePosts' => 'loadMore'];
+    protected $listeners = ['scrollBottom' => 'loadMore'];
 
-    public function mount()
+    public function mount($userId = null)
     {
+        $this->userId = $userId;
         $this->loadPosts();
     }
 
     public function loadPosts($isInitialLoad = true)
     {
+
         $query = Post::with([
-            'user', // Already in $with in model, but good to be explicit for component needs
+            'user',
             'attachments',
             'comments' => function ($query) {
-                $query->with('user')->orderBy('created_at', 'desc'); // Eager load user for comments
+                $query->with('user')->orderBy('created_at', 'desc');
             },
             'likes'
         ])
             ->orderBy('created_at', 'desc');
+
+        // Filter by user ID if provided
+
 
         $loadedPosts = $query->skip(($this->page - 1) * $this->perPage)
             ->take($this->perPage)
@@ -74,6 +82,7 @@ class Posts extends Component
 
     public function loadMore()
     {
+        // sleep(1);
         if ($this->hasMorePages) {
             $this->page++;
             $this->loadPosts(false);
@@ -92,15 +101,17 @@ class Posts extends Component
 
         if ($post->isLikedBy($user)) {
             $post->likes()->where('user_id', $user->id)->delete();
-            Auth::user()->notify(instance: new UserNotification('unliked', $post, Auth::user(), 'you unlike it'));
+            // Auth::user()->notify(instance: new UserNotification('post_unliked', $post, Auth::user(), 'you unlike it'));
         } else {
             $post->likes()->create(['user_id' => $user->id]);
-            Auth::user()->notify(instance: new UserNotification('liked', $post, Auth::user(), 'you like it'));
+            // Auth::user()->notify(instance: new UserNotification(  'post_liked', $post, Auth::user(), 'you like it'));
         }
 
         // Reload the specific post's like data or the entire post
         // A simple way is to reload the post, but for performance, you might update counts directly
         $this->refreshPost($post->id);
+        //  broadcast(new PostUpdated($post,'updated'));
+
     }
 
     public function toggleSave(Post $post)
@@ -123,10 +134,11 @@ class Posts extends Component
 
         if ($currentUser->isFollowing($userToFollow)) {
             $currentUser->following()->detach($userToFollow->id);
-            Auth::user()->notify(instance: new UserNotification(action: 'unfollowed'));
+
+            // Auth::user()->notify(instance: new UserNotification('unfollowed'));
         } else {
             $currentUser->following()->attach($userToFollow->id);
-            Auth::user()->notify(instance: new UserNotification('followed'));
+            // Auth::user()->notify(instance: new UserNotification('followed'));
         }
         // No need to refresh all posts, just the UI for this user, which happens automatically if
         // the button's display logic depends on $currentUser->isFollowing($userToFollow)
@@ -162,6 +174,9 @@ class Posts extends Component
         $this->newCommentText[$post->id] = ''; // Clear input
         $this->openCommentsSection[$post->id] = true; // Keep comments open
         $this->refreshPost($post->id); // Reload post with new comment
+        //  broadcast(new PostUpdated($post,'updated'));
+        //  Auth::user()->notify(instance: new UserNotification('commented', $post, Auth::user()));
+
     }
 
     public function toggleComments(Post $post)
@@ -170,21 +185,82 @@ class Posts extends Component
         if ($this->openCommentsSection[$post->id] && $post->comments->isEmpty()) {
             // If opening and comments were not loaded or empty, refresh to get them
             $this->refreshPost($post->id);
+            //  broadcast(new PostUpdated($post,'updated'));
+
         }
     }
     public function deleteComment($commentId, $postId)
     {
         $comment = Comment::findOrFail($commentId);
-
-        // if (Auth::id() !== $comment->user_id) {
-        //     abort(403); // unauthorized
-        // }
+        $post = Post::findOrFail($postId);
+        if (Auth::id() !== $comment->user_id) {
+            abort(403); // unauthorized
+        }
 
         $comment->delete();
         $this->refreshPost($postId);
+        //         Auth::user()->notify(instance: new UserNotification('comment_deleted', $post, Auth::user()));
+
+        //  broadcast(new PostUpdated($post,'updated'));
     }
 
-    private function refreshPost($postId)
+    #[On('deletePost')]
+    public function deletePost($postId)
+    {
+        $post = Post::findOrFail($postId);
+        if (Auth::id() !== $post->user_id) {
+            abort(403); // unauthorized
+        }
+        $post->delete();
+        $this->loadPosts();
+        $this->js("
+            showToast({ 
+            type: 'success', 
+            title: 'Post Deleted!', 
+            message: 'The post has been successfully deleted.' 
+            })
+        ");
+    }
+    #[On('postCreated')]
+    public function prependPost($postId)
+
+    {
+        // Fetch the newly created post with all its relationships
+        $post = Post::with([
+            'user',
+            'attachments',
+            'comments' => fn($q) => $q->with('user')->orderBy('created_at', 'desc'),
+            'likes'
+        ])->find($postId);
+
+        if ($post && !$this->posts->contains('id', $postId)) {
+            // Initialize its state for comments, etc.
+            $this->initializePostState($post);
+
+            // Prepend it to the existing collection
+            $this->posts->prepend($post);
+        }
+    }
+
+    /**
+     * Helper to initialize state for a new post.
+     */
+    private function initializePostState(Post $post): void
+    {
+        if (!isset($this->newCommentText[$post->id])) {
+            $this->newCommentText[$post->id] = '';
+        }
+        if (!isset($this->openCommentsSection[$post->id])) {
+            $this->openCommentsSection[$post->id] = false;
+        }
+    }
+
+    // #[On('postUpdated')]
+    // public function postUpdated($postId)
+    // {
+    //     $this->refreshPost($postId);
+    // }
+    public function refreshPost($postId)
     {
         $freshPost = Post::with([
             'user',

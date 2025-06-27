@@ -34,7 +34,7 @@ class Conversations extends Component
             ->pluck('user_id');
 
         if ($userIds->isEmpty()) {
-            return collect();
+            return new Collection([]);
         }
 
         // Step 2: Get the latest message for each conversation

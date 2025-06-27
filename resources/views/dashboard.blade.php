@@ -4,8 +4,6 @@
             {{ __('Dashboard') }}
         </h2>
     </x-slot>
-
-   <div class="mt-8">
-                <livewire:online-users />
-            </div>
+  @livewire('profile-edit')
+   
 </x-app-layout>

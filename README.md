@@ -1,6 +1,6 @@
 <br>
 <p align="center">
-  <img src="public/images/logo.svg" alt="QLink Logo" width="150">
+  <img src="public/images/logo1.svg" alt="QLink Logo" width="200">
 </p>
 
 <h1 align="center">QLink</h1>

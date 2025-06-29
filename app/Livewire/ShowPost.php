@@ -24,6 +24,7 @@ class ShowPost extends Component
 
     // State for the comment section
     public string $newCommentText = '';
+    public bool $showCommentInput = false; // <-- ADD THIS PROPERTY
 
     // State for the image modal
     public bool $imageModalOpen = false;
@@ -46,6 +47,14 @@ class ShowPost extends Component
         // Set initial state for reactivity
         $this->likesCount = $this->post->likes_count;
         $this->isLikedByAuthUser = $this->post->is_liked; // Assumes 'is_liked' attribute exists on Post model
+    }
+
+    /**
+     * Toggles the visibility of the comment input and list.
+     */
+    public function toggleCommentSection() // <-- ADD THIS METHOD
+    {
+        $this->showCommentInput = !$this->showCommentInput;
     }
 
     /**
@@ -93,9 +102,9 @@ class ShowPost extends Component
     {
         $comment = Comment::findOrFail($commentId);
 
-        // if (Auth::id() !== $comment->user_id) {
-        //     abort(403); // unauthorized
-        // }
+        if (Auth::id() !== $comment->user_id) {
+            abort(403); // unauthorized
+        }
 
         $comment->delete();
         $this->refreshPostData();

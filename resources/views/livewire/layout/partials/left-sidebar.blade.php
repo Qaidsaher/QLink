@@ -1,5 +1,4 @@
-<header
-    x-data="{ isSidebarOpen: true }"
+<header x-data="{ isSidebarOpen: true }"
     class="sticky top-0 z-40 flex-col justify-between hidden h-screen pr-2 md:flex border-slate-200 dark:border-slate-800 md:w-[88px] xl:w-[275px] transition-all duration-300 ">
 
     <div class="flex flex-col items-center flex-grow h-full p-1 overflow-y-auto xl:items-start">
@@ -7,11 +6,9 @@
         <div class="w-full p-0.5 my-1 bg-gray-100 rounded-full dark:bg-slate-900">
             <a href="{{ route('home') }}"
                 class="flex items-center text-3xl font-semibold text-blue-600 transition-all duration-300 rounded-full ">
-                {{-- <i class="text-3xl fab fa-connectdevelop"></i>
-                <span class="hidden xl:inline">SaherConnect</span> --}}
-                {{-- <x-application-logo class="w-10 h-10"/> --}}
                 <img src="{{ asset('/images/logo1.svg') }}" class="object-fill w-16 h-16 sm:w-12 sm:h-12" />
-                <span class="hidden xl:inline" style="font-family: sans-serif;"> {{ config('app.name', 'QLink') }}</span>
+                <span class="hidden xl:inline" style="font-family: sans-serif;">
+                    {{ config('app.name', 'QLink') }}</span>
             </a>
         </div>
 
@@ -34,17 +31,41 @@
 
             <x-sidebar-nav-link :href="route('notifications')" :active="request()->routeIs('notifications')">
                 <x-slot:icon>
-                    <i class="text-xl far fa-bell fa-fw w-7 h-7"></i>
-                    <span class="hidden xl:inline">Notifications</span>
+                    <div class="flex items-center gap-2">
+                        <div class="relative w-7 h-7">
+                            <i class="text-xl far fa-bell fa-fw w-7 h-7"></i>
+
+                            {{-- Notification Badge --}}
+                            {{-- <span id="notificationBadge" class="absolute -top-1 -right-1 text-[11px] font-bold bg-blue-500 text-white 
+                             w-5 h-5 flex items-center justify-center rounded-full hidden shadow-md">
+                                0
+                            </span> --}}
+                        </div>
+
+                        <span class="hidden xl:inline">Notifications</span>
+                    </div>
                 </x-slot:icon>
             </x-sidebar-nav-link>
 
             <x-sidebar-nav-link :href="route('messages')" :active="request()->routeIs('messages')">
                 <x-slot:icon>
-                    <i class="text-xl far fa-envelope fa-fw w-7 h-7"></i>
-                    <span class="hidden xl:inline">Messages</span>
+                    <div class="flex items-center gap-2">
+                        <div class="relative w-7 h-7">
+                            <i class="text-xl far fa-envelope fa-fw w-7 h-7"></i>
+
+                            {{-- Message Badge --}}
+                            {{-- <span id="messageBadge" class="absolute -top-1 -right-1 text-[11px] font-bold bg-red-500 text-white 
+                             w-5 h-5 flex items-center justify-center rounded-full hidden shadow-md">
+                                0
+                            </span> --}}
+                        </div>
+
+                        <span class="hidden xl:inline">Messages</span>
+                    </div>
                 </x-slot:icon>
             </x-sidebar-nav-link>
+
+
 
             @auth
                 <x-sidebar-nav-link :href="route('profile.show', Auth::user()->username)"
@@ -72,7 +93,8 @@
     <!-- Profile/Logout Section -->
     <div class="pb-4 mt-auto xl:p-2">
         @auth
-            <div x-data="{ open: false }" class="relative flex justify-center w-full py-2 border-t border-gray-200 dark:border-slate-700">
+            <div x-data="{ open: false }"
+                class="relative flex justify-center w-full py-2 border-t border-gray-200 dark:border-slate-700">
                 <button @click="open = !open"
                     class="flex items-center p-0 transition-colors bg-gray-100 rounded-full xl:w-full xl:p-2 hover:bg-gray-200 dark:bg-slate-900">
                     <x-avatar :user="Auth::user()" class="m-0" />

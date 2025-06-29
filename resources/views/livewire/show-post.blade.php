@@ -31,7 +31,8 @@
             </div>
             @auth
                 @if (Auth::id() !== $post->user->id)
-                    <button wire:click="toggleFollow" wire:loading.attr="disabled"
+                    {{-- THE FIX IS HERE: Pass the post's user ID to the toggleFollow method --}}
+                    <button wire:click="toggleFollow({{ $post->user->id }})" wire:loading.attr="disabled"
                         class="px-4 py-1.5 text-sm font-bold {{ Auth::user()->isFollowing($post->user) ? 'bg-transparent border border-gray-300 dark:border-gray-600 text-black dark:text-white' : 'bg-black dark:bg-white text-white dark:text-black' }} rounded-full transition-colors">
                         <span>{{ Auth::user()->isFollowing($post->user) ? 'Following' : 'Follow' }}</span>
                     </button>
@@ -73,7 +74,7 @@
         {{-- Action Bar (Same as feed) --}}
         <footer
             class="flex items-center justify-around py-2 text-gray-500 border-b border-gray-200 dark:border-slate-700">
-            <button wire:click="toggleComments" class="flex items-center space-x-2 transition group">
+            <button wire:click="toggleCommentSection" class="flex items-center space-x-2 transition group">
                 <div class="p-2 rounded-full group-hover:bg-blue-100 dark:group-hover:bg-blue-800/30"><svg
                         class="w-6 h-6 group-hover:text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -109,72 +110,74 @@
         </footer>
     </article>
 
-    {{-- Reply Form Section --}}
-    @auth
-        <div class="p-4 border-b border-gray-200 dark:border-slate-700">
-            <form wire:submit.prevent="addComment" class="flex items-start space-x-4">
-                <img src="{{ Auth::user()->avatarUrl() }}" alt="Your avatar" class="flex-shrink-0 w-12 h-12 rounded-full">
-                <div class="flex-1">
-                    <textarea wire:model="newCommentText" rows="1" placeholder="Post your reply"
-                        class="w-full text-lg bg-transparent border-0 resize-none dark:text-gray-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-0"></textarea>
-                    @error('newCommentText') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
-                </div>
-                <button type="submit" wire:loading.attr="disabled"
-                    class="px-5 py-2 text-sm font-bold text-white bg-blue-500 rounded-full hover:bg-blue-600 disabled:opacity-70">
-                    Reply
-                </button>
-            </form>
-        </div>
-    @endauth
-
-    {{-- Comments/Replies List --}}
-    <section aria-labelledby="replies-heading">
-        <h2 id="replies-heading" class="sr-only">Replies</h2>
-        <div>
-            @forelse ($post->comments as $comment)
-                {{-- Each comment is rendered like a post from the main feed --}}
-                <div wire:key="comment-{{ $comment->id }}"
-                    class="flex p-4 space-x-4 border-b border-gray-200 dark:border-slate-700">
-                    <div class="flex-shrink-0">
-                        <a href="{{-- route('profile.show', $comment->user) --}}"><img
-                                src="{{ $comment->user->avatarUrl() }}" alt="{{ $comment->user->name }}"
-                                class="w-12 h-12 rounded-full"></a>
-                    </div>
+    {{-- Conditionally show the Reply Form and Comments --}}
+    @if ($showCommentInput)
+        {{-- Reply Form Section --}}
+        @auth
+            <div class="p-4 border-b border-gray-200 dark:border-slate-700">
+                <form wire:submit.prevent="addComment" class="flex items-start space-x-4">
+                    <img src="{{ Auth::user()->avatarUrl() }}" alt="Your avatar" class="flex-shrink-0 w-12 h-12 rounded-full">
                     <div class="flex-1">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-1 text-sm">
-                                <a href="{{-- route('profile.show', $comment->user) --}}"
-                                    class="font-bold text-gray-900 dark:text-white hover:underline">{{ $comment->user->name }}</a>
-                                <span
-                                    class="text-gray-500 dark:text-gray-400">@<span>{{ $comment->user->username }}</span></span>
-                                <span class="text-gray-500 dark:text-gray-400">&middot;</span>
-                                <span
-                                    class="text-gray-500 dark:text-gray-400">{{ $comment->created_at->diffForHumans() }}</span>
-                            </div>
-                            @if (auth()->id() === $comment->user_id)
-                                <button wire:click="deleteComment({{ $comment->id }})" title="Delete comment"
-                                    class="p-1 text-gray-400 rounded-full hover:bg-red-100 hover:text-red-500">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                                        </path>
-                                    </svg>
-                                </button>
-                            @endif
-                        </div>
-                        <p class="mt-1 text-gray-800 dark:text-gray-200">
-                            {!! nl2br(e($comment->content)) !!}</p>
+                        <textarea wire:model="newCommentText" rows="1" placeholder="Post your reply"
+                            class="w-full text-lg bg-transparent border-0 resize-none dark:text-gray-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-0"></textarea>
+                        @error('newCommentText') <p class="mt-1 text-sm text-red-500">{{ $message }}</p> @enderror
                     </div>
-                </div>
-            @empty
-                <div class="p-10 text-center text-gray-500 dark:text-gray-400">
-                    <p>No replies yet. Be the first!</p>
-                </div>
-            @endforelse
-        </div>
-    </section>
+                    <button type="submit" wire:loading.attr="disabled"
+                        class="px-5 py-2 text-sm font-bold text-white bg-blue-500 rounded-full hover:bg-blue-600 disabled:opacity-70">
+                        Reply
+                    </button>
+                </form>
+            </div>
+        @endauth
 
-    <!-- Image Modal (Your existing partial or logic goes here) -->
+        {{-- Comments/Replies List --}}
+        <section aria-labelledby="replies-heading">
+            <h2 id="replies-heading" class="sr-only">Replies</h2>
+            <div>
+                @forelse ($post->comments as $comment)
+                    {{-- Each comment is rendered like a post from the main feed --}}
+                    <div wire:key="comment-{{ $comment->id }}"
+                        class="flex p-4 space-x-4 border-b border-gray-200 dark:border-slate-700">
+                        <div class="flex-shrink-0">
+                            <a href="{{-- route('profile.show', $comment->user) --}}"><img
+                                    src="{{ $comment->user->avatarUrl() }}" alt="{{ $comment->user->name }}"
+                                    class="w-12 h-12 rounded-full"></a>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-1 text-sm">
+                                    <a href="{{-- route('profile.show', $comment->user) --}}"
+                                        class="font-bold text-gray-900 dark:text-white hover:underline">{{ $comment->user->name }}</a>
+                                    <span
+                                        class="text-gray-500 dark:text-gray-400">@<span>{{ $comment->user->username }}</span></span>
+                                    <span class="text-gray-500 dark:text-gray-400">&middot;</span>
+                                    <span
+                                        class="text-gray-500 dark:text-gray-400">{{ $comment->created_at->diffForHumans() }}</span>
+                                </div>
+                                @if (auth()->id() === $comment->user_id)
+                                    <button wire:click="deleteComment({{ $comment->id }})" title="Delete comment"
+                                        class="p-1 text-gray-400 rounded-full hover:bg-red-100 hover:text-red-500">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                            </path>
+                                        </svg>
+                                    </button>
+                                @endif
+                            </div>
+                            <p class="mt-1 text-gray-800 dark:text-gray-200">
+                                {!! nl2br(e($comment->content)) !!}</p>
+                        </div>
+                    </div>
+                @empty
+                    <div class="p-10 text-center text-gray-500 dark:text-gray-400">
+                        <p>No replies yet. Be the first!</p>
+                    </div>
+                @endforelse
+            </div>
+        </section>
+    @endif
+
     @if($imageModalOpen && !empty($imageModalUrls))
 
         <div x-data x-show="$wire.imageModalOpen" x-transition:enter="ease-out duration-300"
@@ -186,10 +189,8 @@
             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90"
             x-trap.noscroll.inert="$wire.imageModalOpen" style="display: none;" aria-labelledby="modal-title" role="dialog"
             aria-modal="true">
-            <!-- Main Modal Content -->
             <div @click.away="$wire.closeImageModal()" class="relative flex flex-col w-full h-full">
 
-                <!-- Close Button (Top Right) -->
                 <button wire:click="closeImageModal()"
                     class="absolute top-0 right-0 z-20 m-4 text-white rounded-full opacity-70 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black/50">
                     <span class="sr-only">Close</span>
@@ -199,7 +200,6 @@
                     </svg>
                 </button>
 
-                <!-- Image Container -->
                 <div class="relative flex items-center justify-center flex-grow w-full h-full" aria-hidden="true">
                     @if(isset($imageModalUrls[$currentImageModalIndex]))
                         <img src="{{ $imageModalUrls[$currentImageModalIndex]['url'] }}" alt="Enlarged view"
@@ -207,10 +207,8 @@
                     @endif
                 </div>
 
-                <!-- Controls and Pagination (Bottom Center) -->
                 <div class="absolute bottom-0 left-0 right-0 z-20 flex items-center justify-center p-4">
                     <div class="flex items-center px-4 py-2 space-x-6 rounded-full bg-black/50 backdrop-blur-sm">
-                        <!-- Previous Button -->
                         <button wire:click="navigateImageModal(-1)" @disabled($currentImageModalIndex === 0)
                             class="text-white rounded-full disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white">
                             <span class="sr-only">Previous</span>
@@ -220,12 +218,10 @@
                             </svg>
                         </button>
 
-                        <!-- Pagination -->
                         <p class="text-lg font-medium text-white select-none" aria-live="polite">
                             {{ $currentImageModalIndex + 1 }} / {{ count($imageModalUrls) }}
                         </p>
 
-                        <!-- Next Button -->
                         <button wire:click="navigateImageModal(1)" @disabled($currentImageModalIndex >= count($imageModalUrls) - 1)
                             class="text-white rounded-full disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white">
                             <span class="sr-only">Next</span>

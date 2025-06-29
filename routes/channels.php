@@ -9,6 +9,8 @@ Broadcast::channel('online', function ($user) {
     return [
         'id' => $user->id,
         'name' => $user->name,
-        'avatar' => 'https://i.pravatar.cc/150?u=' . $user->id // Example avatar
     ];
+});
+Broadcast::channel('chat.{receiverId}', function ($user, $receiverId) {
+    return (int) $user->id === (int) $receiverId;
 });

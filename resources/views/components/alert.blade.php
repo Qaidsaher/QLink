@@ -116,31 +116,5 @@
             autoDismissTimeout = setTimeout(removeToast, remainingDuration);
         });
     }
-    // --- DEMO HELPER FUNCTIONS ---
-    function showDemoToast(type) {
-        const position = document.getElementById('position-select').value;
-        const demoMessages = {
-            success: { title: 'Success!', message: 'Your changes have been saved successfully.' },
-            error: { title: 'Error!', message: 'Could not connect to the server. Please try again.' },
-            info: { title: 'Did you know?', message: 'You can customize the position of these notifications.' },
-            warning: { title: 'Warning', message: 'Your session is about to expire in 5 minutes.' },
-        };
-        const { title, message } = demoMessages[type];
-
-        showToast({ type, title, message, position });
-    }
-
-    function toggleDarkMode() {
-        document.documentElement.classList.toggle('dark');
-    }
-
-    // Show an initial welcome toast when the page loads
-    document.addEventListener('DOMContentLoaded', () => {
-        showToast({
-            title: 'Welcome!',
-            message: 'This is a Tailwind CSS powered toast notification system.',
-            position: 'top-right',
-            type: 'info'
-        });
-    });
+  
 </script>

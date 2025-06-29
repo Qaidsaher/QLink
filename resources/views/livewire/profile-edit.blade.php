@@ -52,7 +52,7 @@
                             </div>
                         </div>
 
-                        <div x-data="{ coverPhotoPreview: '{{ $user->cover_photo_url }}', avatarPreview: '{{ $user->avatarUrl() }}' }"
+                        <div x-data="{ coverPhotoPreview: '{{ $user->BackgroundImageCover() }}', avatarPreview: '{{ $user->avatarUrl() }}' }"
                             class="relative mt-6">
                             <div class="relative h-48 bg-slate-200 dark:bg-slate-800 sm:h-56 rounded-xl">
                                 <img x-show="coverPhotoPreview" :src="coverPhotoPreview"

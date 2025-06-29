@@ -116,7 +116,7 @@
 
         {{-- Pagination --}}
         @if ($this->notifications->hasPages())
-            <div class="mt-6">
+            <div class="px-2 mt-6">
                 {{ $this->notifications->links() }}
             </div>
         @endif

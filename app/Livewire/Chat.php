@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Events\MessageSent;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -57,11 +58,13 @@ class Chat extends Component
         $this->validate(['newMessage' => 'required|string|max:1000']);
         if (!$this->selectedConversation) return;
 
-        Message::create([
+        $message = Message::create([
             'sender_id' => Auth::id(),
             'receiver_id' => $this->selectedConversation->id,
             'message' => $this->newMessage,
         ]);
+        // broadcast event
+        broadcast(new MessageSent($message))->toOthers();
         $this->reset('newMessage');
 
         // Dispatch event for Alpine.js to scroll to bottom

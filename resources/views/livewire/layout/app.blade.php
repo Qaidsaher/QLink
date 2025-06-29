@@ -13,28 +13,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
         xintegrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-    {{-- <style type="text/tailwindcss">
-        @layer utilities {
-            /* Animation for the progress bar */
-            @keyframes toast-progress {
-                from { width: 100%; }
-                to { width: 0%; }
-            }
-
-            /* Add the accent color bar using a pseudo-element */
-            .toast::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 5px;
-                height: 100%;
-                background-color: var(--toast-accent-color);
-            }
-        }
-    </style> --}}
-    {{--
     <script>
+        window.Laravel = {
+        @auth
+            userId: {{ auth()->id() }}
+        @else
+            userId: null
+        @endauth
+    };
         function updateThemeUI(isDark) {
             document.documentElement.classList.toggle('dark', isDark);
             const icon = document.getElementById('theme-icon');
@@ -52,61 +38,13 @@
             const current = localStorage.getItem('theme') === 'dark' ? 'light' : 'dark';
             setTheme(current);
         }
-
-
-        function initEchoPresence() {
-            Echo.join('online')
-                .here(users => {
-                    // alert(user)
-                    users.forEach(user => setUserOnline(user.id));
-                })
-                .joining(user => {
-                    setUserOnline(user.id);
-                })
-                .leaving(user => {
-                    setUserOffline(user.id);
-                });
-        }
-
-        function setUserOnline(userId) {
-            document.querySelectorAll(`[data-user-id="${userId}"]`).forEach(container => {
-                container.querySelector('.online-dot')?.classList.remove('hidden');
-                container.querySelector('.offline-dot')?.classList.add('hidden');
-            });
-        }
-
-        function setUserOffline(userId) {
-            document.querySelectorAll(`[data-user-id="${userId}"]`).forEach(container => {
-                container.querySelector('.online-dot')?.classList.add('hidden');
-                container.querySelector('.offline-dot')?.classList.remove('hidden');
-            });
-        }
-
         function initTheme() {
-            initEchoPresence();
-            const stored = localStorage.getItem('theme') || 'light';
+
+            const stored = localStorage.getItem('theme') || 'dark';
             setTheme(stored);
+         
         }
-        document.addEventListener('DOMContentLoaded', () => {
-            initTheme();
 
-            // document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
-
-            // Livewire Events
-            document.addEventListener('livewire:navigated', initTheme);
-            document.addEventListener('livewire:navigate', initTheme);
-            document.addEventListener('livewire:navigating', initTheme);
-            Livewire.hook('message.processed', initTheme);
-            // Init Echo presence tracking once Livewire is ready
-            document.addEventListener('livewire:load', () => {
-
-            });
-
-        });
-    </script>
-    --}}
-
-    <script>
         window.EchoPresenceManager = (() => {
             // Private variables
             let onlineUsersMap = new Map();
@@ -226,15 +164,70 @@
         // Init on DOM load
         document.addEventListener('DOMContentLoaded', () => {
             window.EchoPresenceManager.init();
+            initTheme();
+            startOnlineStatusChecker(); /
+
+            // 👇 Safe Echo listener for authenticated users only
+           
         });
 
         // Livewire DOM update hooks
         document.addEventListener("livewire:update", () => {
+        
             window.EchoPresenceManager.refresh();
+            initTheme();
+            
+            
         });
         document.addEventListener("livewire:navigated", () => {
             window.EchoPresenceManager.refresh();
+            initTheme();
         });
+        function startOnlineStatusChecker(intervalMs = 1000, timeoutMs = 5 * 60 * 1000) {
+            function checkOnlineStatuses() {
+                const stored = localStorage.getItem('onlineUsersMap');
+                if (!stored) return;
+
+                let parsed;
+                try {
+                    parsed = JSON.parse(stored);
+                } catch (e) {
+                    return;
+                }
+
+                const now = Date.now();
+
+                // Loop over all DOM elements with data-user-id
+                document.querySelectorAll('[data-user-id]').forEach(el => {
+                    const userId = el.getAttribute('data-user-id');
+                    const lastSeen = parsed[userId];
+
+                    const online = lastSeen && now - Number(lastSeen) <= timeoutMs;
+
+                    const onlineDot = el.querySelector('.online-dot');
+                    const offlineDot = el.querySelector('.offline-dot');
+
+                    if (online) {
+                        onlineDot?.classList.remove('hidden');
+                        offlineDot?.classList.add('hidden');
+                    } else {
+                        onlineDot?.classList.add('hidden');
+                        offlineDot?.classList.remove('hidden');
+                    }
+                });
+            }
+
+            // Initial run
+            checkOnlineStatuses();
+
+            // ✅ Only check when tab is visible
+            setInterval(() => {
+                if (document.visibilityState === 'visible') {
+                    checkOnlineStatuses();
+                }
+            }, intervalMs);
+        }
+
     </script>
 
 
@@ -269,6 +262,10 @@
 </head>
 
 <body class="font-sans antialiased bg-white text-slate-800 dark:bg-black dark:text-slate-200">
+    <!-- Trigger Button -->
+    <div id="notificationArea" class="fixed z-50 transform -translate-x-1/2 top-10 left-1/2"></div>
+    <div id="messageNotificationArea" class="fixed z-50 bottom-5 right-5"></div>
+
 
     <div class="flex justify-center min-h-screen">
 
@@ -315,37 +312,9 @@
         @include('livewire.layout.partials.mobile-bottom-nav')
     </div>
     <x-alert />
+    <x-chat-alert />
     {{-- @livewireScripts --}}
-    <script>
-        // Self-contained AlpineJS component for theme management
-        function theme() {
-            return {
-                isDarkMode: false,
-                init() {
-                    // Check for saved preference in localStorage, otherwise use system preference
-                    const savedTheme = localStorage.getItem('darkMode');
-                    if (savedTheme !== null) {
-                        this.isDarkMode = savedTheme === 'true';
-                    } else {
-                        this.isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                    }
 
-                    // Watch for changes to persist them
-                    this.$watch('isDarkMode', value => {
-                        localStorage.setItem('darkMode', value);
-                        if (value) {
-                            document.documentElement.classList.add('dark');
-                        } else {
-                            document.documentElement.classList.remove('dark');
-                        }
-                    });
-                },
-                toggleTheme() {
-                    this.isDarkMode = !this.isDarkMode;
-                }
-            }
-        }
-    </script>
 </body>
 
 </html>

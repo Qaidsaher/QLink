@@ -14,17 +14,57 @@
 
 @layer utilities {
 
-  /* Animation for the progress bar */
-  @keyframes toast-progress {
-    from {
-      width: 100%;
+  /* Animation keyframes */
+  @keyframes fadeDrop {
+    0% {
+      opacity: 0;
+      transform: translateY(-100%);
     }
 
-    to {
-      width: 0%;
+    100% {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 
+  @keyframes barScale {
+
+    0%,
+    100% {
+      transform: scaleY(1);
+      background-color: rgba(59, 130, 246, 0.5);
+      /* Tailwind blue-500/50 */
+    }
+
+    20% {
+      transform: scaleY(1.5);
+      background-color: rgba(59, 130, 246, 1);
+      /* Tailwind blue-500 */
+    }
+
+    40% {
+      transform: scaleY(1);
+    }
+  }
+
+  /* Animation utilities */
+  .animate-fade-drop {
+    animation: fadeDrop 0.5s ease-out forwards;
+  }
+
+  .animate-bar-scale-1 {
+    animation: barScale 1s linear infinite;
+  }
+
+  .animate-bar-scale-2 {
+    animation: barScale 1s linear infinite 0.25s;
+  }
+
+  .animate-bar-scale-3 {
+    animation: barScale 1s linear infinite 0.5s;
+  }
+
+  /* Your existing utilities */
   /* Add the accent color bar using a pseudo-element */
   .toast::before {
     content: '';

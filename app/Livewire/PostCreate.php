@@ -173,14 +173,23 @@ class PostCreate extends Component
         // broadcast(new PostUpdated($post, 'created'));
         Auth::user()->notify(new UserNotification('post_created', $post, Auth::user()));
 
-        $this->dispatch('postCreated', postId: $post->id);
-        $this->js("
-            showToast({ 
-                type: 'success', 
-                title: 'Post Created!', 
-                message: 'Your new post is now live for everyone to see.' 
-            })
-        ");
+
+    //    return $this->redirect->route('feed', navigate: true);
+        // $this->dispatch('postCreated', postId: $post->id);
+        // $this->js("
+        //     showToast({ 
+        //         type: 'success', 
+        //         title: 'Post Created!', 
+        //         message: 'Your new post is now live for everyone to see.' 
+        //     })
+        // ");
+
+    //     $this->js("
+    //         notifyNewPosts(
+    //   [null],
+    //   7,'/feed'
+    // )
+    //     ");
     }
 
     // This method determines the type string stored in the DB

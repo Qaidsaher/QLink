@@ -4,13 +4,13 @@
 
     <div class="flex flex-col items-center flex-grow h-full p-1 overflow-y-auto xl:items-start">
         <!-- Logo -->
-        <div class="w-full p-1 my-2 bg-gray-100 rounded-full dark:bg-slate-900">
+        <div class="w-full p-0.5 my-1 bg-gray-100 rounded-full dark:bg-slate-900">
             <a href="{{ route('home') }}"
                 class="flex items-center text-3xl font-semibold text-blue-600 transition-all duration-300 rounded-full ">
                 {{-- <i class="text-3xl fab fa-connectdevelop"></i>
                 <span class="hidden xl:inline">SaherConnect</span> --}}
                 {{-- <x-application-logo class="w-10 h-10"/> --}}
-                <img src="{{ asset('/images/logo1.svg') }}" class="object-fill w-16 h-16" />
+                <img src="{{ asset('/images/logo1.svg') }}" class="object-fill w-16 h-16 sm:w-12 sm:h-12" />
                 <span class="hidden xl:inline" style="font-family: sans-serif;"> {{ config('app.name', 'QLink') }}</span>
             </a>
         </div>

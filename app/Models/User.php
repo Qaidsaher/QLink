@@ -27,7 +27,10 @@ class User extends Authenticatable
         'password',
         'role',
         'bio',
-        'avatar'
+        'avatar',
+        'location',
+        'website',
+        'coverPhoto'
     ];
     protected $casts = [
         'created_at' => 'datetime',
@@ -139,11 +142,17 @@ class User extends Authenticatable
     // In app/Models/User.php
     public function getCoverPhotoUrlAttribute(): ?string
     {
-        return $this->cover_photo_path ? Storage::url($this->cover_photo_path) : null; // Or a default cover URL
+        return $this->coverPhoto ? Storage::url($this->coverPhoto) : null; // Or a default cover URL
     }
     // In app/Models/User.php
     public static function defaultAvatarUrlPlaceholder(string $name = 'User'): string
     {
         return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&color=7F9CF5&background=EBF4FF&bold=true&format=svg&size=128';
+    }
+    public function BackgroundImageCover(): ?string
+    {
+        return $this->coverPhoto
+            ? Storage::url($this->coverPhoto)
+            : 'https://example.com/default-background-cover.jpg'; // Replace with your default cover image URL
     }
 }

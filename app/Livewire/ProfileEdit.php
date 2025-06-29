@@ -36,7 +36,7 @@ class ProfileEdit extends Component
     public $current_password = '';
     public $new_password = '';
     public $new_password_confirmation = '';
-    
+
     // Account Deletion Properties
     public $confirmingAccountDeletion = false;
     public $delete_password = '';
@@ -65,33 +65,41 @@ class ProfileEdit extends Component
             return;
         }
         $this->usernameStatus = 'checking';
-        $this->validateOnly('username', ['username' => ['required','string','max:25','alpha_dash',Rule::unique('users')->ignore($this->user->id)]]);
+        $this->validateOnly('username', ['username' => ['required', 'string', 'max:25', 'alpha_dash', Rule::unique('users')->ignore($this->user->id)]]);
         $this->usernameStatus = 'available';
     }
-    
-    public function updatedAvatar() { $this->validateOnly('avatar', ['avatar' => 'nullable|image|max:2048']); }
-    public function updatedCoverPhoto() { $this->validateOnly('coverPhoto', ['coverPhoto' => 'nullable|image|max:5120']); }
-    
+
+    public function updatedAvatar()
+    {
+        $this->validateOnly('avatar', ['avatar' => 'nullable|image|max:2048']);
+    }
+    public function updatedCoverPhoto()
+    {
+        $this->validateOnly('coverPhoto', ['coverPhoto' => 'nullable|image|max:5120']);
+    }
+
     public function saveProfile()
     {
         $validatedData = $this->validate([
             'name' => 'required|string|max:50',
-            'username' => ['required','string','max:25','alpha_dash',Rule::unique('users')->ignore($this->user->id)],
+            'username' => ['required', 'string', 'max:25', 'alpha_dash', Rule::unique('users')->ignore($this->user->id)],
             'bio' => 'nullable|string|max:160',
             'location' => 'nullable|string|max:50',
             'website' => 'nullable|url|max:100',
             'avatar' => 'nullable|image|max:2048',
             'coverPhoto' => 'nullable|image|max:5120',
         ]);
-        
+
         if ($this->avatar) {
             $validatedData['avatar'] = $this->avatar->store('avatars', 'public');
         }
         if ($this->coverPhoto) {
-            $validatedData['cover_photo_url'] = $this->coverPhoto->store('covers', 'public');
+            $validatedData['coverPhoto'] = $this->coverPhoto->store('covers', 'public');
+           
         }
 
         $this->user->update($validatedData);
+        $this->user->save();
         $this->dispatch('profile-saved');
     }
 
@@ -105,7 +113,7 @@ class ProfileEdit extends Component
         $this->user->update($validatedData);
         $this->dispatch('notifications-saved');
     }
-    
+
     public function savePrivacySettings()
     {
         $validatedData = $this->validate([
@@ -115,7 +123,7 @@ class ProfileEdit extends Component
         $this->user->update($validatedData);
         $this->dispatch('privacy-saved');
     }
-    
+
     public function updatePassword()
     {
         $validatedData = $this->validate([
@@ -132,13 +140,13 @@ class ProfileEdit extends Component
     {
         $this->confirmingAccountDeletion = true;
     }
-    
+
     public function deleteAccount()
     {
         $this->validate(['delete_password' => ['required', 'string', 'current_password']]);
         $user = $this->user;
         Auth::logout();
-        
+
         if ($user->delete()) {
             session()->flash('success', 'Your account has been permanently deleted.');
             return redirect()->route('home');

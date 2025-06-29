@@ -12,7 +12,7 @@ use App\Notifications\UserNotification;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Title;
-use Livewire\WithPagination; // For potential future pagination
+use Livewire\WithPagination;
 use Livewire\Attributes\On;
 
 #[Title('posts')]
@@ -21,19 +21,23 @@ class Posts extends Component
     // use WithPagination; // We'll use a "load more" approach initially
     public $userId;
     public $posts; // Collection of posts
-    public $perPage = 10; // Number of posts to load each time
-    public $page = 1; // Current page for loading more
+    public $perPage = 10;
+    public $page = 1;
     public $hasMorePages;
+    public $newPostsCount = 0; //  <-- New property for the new posts counter
 
-    public $newCommentText = []; // Array to store comment text for each post [postId => text]
-    public $openCommentsSection = []; // Array to store which comment section is open [postId => boolean]
+    public $newCommentText = [];
+    public $openCommentsSection = [];
 
     // For image modal
     public $imageModalOpen = false;
-    public $imageModalUrls = []; // Array of {url: string, originalPostId: int}
+    public $imageModalUrls = [];
     public $currentImageModalIndex = 0;
 
     protected $listeners = ['scrollBottom' => 'loadMore'];
+    // Add these new properties at the top of your Posts.php class
+    public $confirmingCommentDeletion = false;
+    public $commentIdToDelete = null;
 
     public function mount($userId = null)
     {
@@ -43,7 +47,6 @@ class Posts extends Component
 
     public function loadPosts($isInitialLoad = true)
     {
-
         $query = Post::with([
             'user',
             'attachments',
@@ -53,9 +56,6 @@ class Posts extends Component
             'likes'
         ])
             ->orderBy('created_at', 'desc');
-
-        // Filter by user ID if provided
-
 
         $loadedPosts = $query->skip(($this->page - 1) * $this->perPage)
             ->take($this->perPage)
@@ -69,7 +69,6 @@ class Posts extends Component
 
         $this->hasMorePages = $loadedPosts->count() >= $this->perPage;
 
-        // Initialize comment text and open state for new posts
         foreach ($loadedPosts as $post) {
             if (!isset($this->newCommentText[$post->id])) {
                 $this->newCommentText[$post->id] = '';
@@ -80,9 +79,75 @@ class Posts extends Component
         }
     }
 
+    /**
+     * This method is called by Livewire's polling feature. It efficiently counts
+     * new posts without loading the entire collection, updating a counter
+     * that is displayed to the user.
+     */
+    public function checkForNewPosts()
+    {
+        $latestPostId = $this->posts->max('id');
+        if ($latestPostId) {
+            $this->newPostsCount = Post::where('id', '>', $latestPostId)->count();
+        }
+    }
+
+    /**
+     * This method is called when the user clicks the "show new posts" button.
+     * It loads the new posts and prepends them to the existing collection,
+     * then resets the new posts counter.
+     */
+    public function prependNewPosts()
+    {
+        $latestPostId = $this->posts->max('id');
+        if ($latestPostId) {
+            $newPosts = Post::with(['user', 'attachments', 'comments.user', 'likes'])
+                ->where('id', '>', $latestPostId)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            foreach ($newPosts as $post) {
+                $this->initializePostState($post);
+            }
+
+            $this->posts = $newPosts->concat($this->posts);
+            $this->newPostsCount = 0;
+        }
+    }
+
+
+    // Add this new method to handle the confirmation request
+    public function requestDeleteConfirmation($commentId)
+    {
+        $this->commentIdToDelete = $commentId;
+        $this->confirmingCommentDeletion = true;
+    }
+
+    // Replace your OLD deleteComment method with this NEW one.
+    // This new version works with the confirmation modal.
+    public function deleteComment()
+    {
+        if ($this->commentIdToDelete === null) {
+            return; // Do nothing if no comment is selected
+        }
+
+        $comment = Comment::findOrFail($this->commentIdToDelete);
+
+        if (Auth::id() !== $comment->user_id) {
+            abort(403); // Unauthorized
+        }
+
+        $postId = $comment->post_id;
+        $comment->delete();
+
+        $this->refreshPost($postId);
+
+        // Reset properties
+        $this->confirmingCommentDeletion = false;
+        $this->commentIdToDelete = null;
+    }
     public function loadMore()
     {
-        // sleep(1);
         if ($this->hasMorePages) {
             $this->page++;
             $this->loadPosts(false);
@@ -92,8 +157,6 @@ class Posts extends Component
     public function toggleLike(Post $post)
     {
         if (!Auth::check()) {
-            // Or redirect to login, show a message, etc.
-            // $this->dispatch('toast', ['message' => 'Please login to like posts.', 'type' => 'info']);
             return;
         }
 
@@ -101,24 +164,15 @@ class Posts extends Component
 
         if ($post->isLikedBy($user)) {
             $post->likes()->where('user_id', $user->id)->delete();
-            // Auth::user()->notify(instance: new UserNotification('post_unliked', $post, Auth::user(), 'you unlike it'));
         } else {
             $post->likes()->create(['user_id' => $user->id]);
-            // Auth::user()->notify(instance: new UserNotification(  'post_liked', $post, Auth::user(), 'you like it'));
         }
-
-        // Reload the specific post's like data or the entire post
-        // A simple way is to reload the post, but for performance, you might update counts directly
         $this->refreshPost($post->id);
-        //  broadcast(new PostUpdated($post,'updated'));
-
     }
 
     public function toggleSave(Post $post)
     {
         // Placeholder for save functionality
-        // You'll need a SavedPost model and relationship
-        // $this->dispatch('toast', ['message' => 'Save functionality coming soon!', 'type' => 'info']);
     }
 
     public function toggleFollow(User $userToFollow)
@@ -129,27 +183,17 @@ class Posts extends Component
         $currentUser = Auth::user();
 
         if ($currentUser->id === $userToFollow->id) {
-            return; // Cannot follow self
+            return;
         }
 
         if ($currentUser->isFollowing($userToFollow)) {
             $currentUser->following()->detach($userToFollow->id);
-
-            // Auth::user()->notify(instance: new UserNotification('unfollowed'));
         } else {
             $currentUser->following()->attach($userToFollow->id);
-            // Auth::user()->notify(instance: new UserNotification('followed'));
         }
-        // No need to refresh all posts, just the UI for this user, which happens automatically if
-        // the button's display logic depends on $currentUser->isFollowing($userToFollow)
-        // However, if the `following` status is on the $post->user object, you might need to refresh posts
-        // or update that user's status within the $this->posts collection.
-        // For simplicity, we can let Livewire re-render.
-        // Or specifically update the user object in the posts collection:
+
         $this->posts = $this->posts->map(function ($p) use ($userToFollow) {
             if ($p->user_id === $userToFollow->id) {
-                // This is tricky as $userToFollow is a different instance.
-                // It's often better to just re-fetch or ensure the view correctly uses Auth::user()->isFollowing()
             }
             return $p;
         });
@@ -158,7 +202,6 @@ class Posts extends Component
     public function addComment(Post $post)
     {
         if (!Auth::check()) {
-            // $this->dispatch('toast', ['message' => 'Please login to comment.', 'type' => 'info']);
             return;
         }
 
@@ -171,37 +214,17 @@ class Posts extends Component
             'content' => $this->newCommentText[$post->id],
         ]);
 
-        $this->newCommentText[$post->id] = ''; // Clear input
-        $this->openCommentsSection[$post->id] = true; // Keep comments open
-        $this->refreshPost($post->id); // Reload post with new comment
-        //  broadcast(new PostUpdated($post,'updated'));
-        //  Auth::user()->notify(instance: new UserNotification('commented', $post, Auth::user()));
-
+        $this->newCommentText[$post->id] = '';
+        $this->openCommentsSection[$post->id] = true;
+        $this->refreshPost($post->id);
     }
 
     public function toggleComments(Post $post)
     {
         $this->openCommentsSection[$post->id] = !($this->openCommentsSection[$post->id] ?? false);
         if ($this->openCommentsSection[$post->id] && $post->comments->isEmpty()) {
-            // If opening and comments were not loaded or empty, refresh to get them
             $this->refreshPost($post->id);
-            //  broadcast(new PostUpdated($post,'updated'));
-
         }
-    }
-    public function deleteComment($commentId, $postId)
-    {
-        $comment = Comment::findOrFail($commentId);
-        $post = Post::findOrFail($postId);
-        if (Auth::id() !== $comment->user_id) {
-            abort(403); // unauthorized
-        }
-
-        $comment->delete();
-        $this->refreshPost($postId);
-        //         Auth::user()->notify(instance: new UserNotification('comment_deleted', $post, Auth::user()));
-
-        //  broadcast(new PostUpdated($post,'updated'));
     }
 
     #[On('deletePost')]
@@ -209,15 +232,15 @@ class Posts extends Component
     {
         $post = Post::findOrFail($postId);
         if (Auth::id() !== $post->user_id) {
-            abort(403); // unauthorized
+            abort(403);
         }
         $post->delete();
         $this->loadPosts();
         $this->js("
-            showToast({ 
-            type: 'success', 
-            title: 'Post Deleted!', 
-            message: 'The post has been successfully deleted.' 
+            showToast({
+            type: 'success',
+            title: 'Post Deleted!',
+            message: ''
             })
         ");
     }
@@ -225,7 +248,6 @@ class Posts extends Component
     public function prependPost($postId)
 
     {
-        // Fetch the newly created post with all its relationships
         $post = Post::with([
             'user',
             'attachments',
@@ -234,17 +256,11 @@ class Posts extends Component
         ])->find($postId);
 
         if ($post && !$this->posts->contains('id', $postId)) {
-            // Initialize its state for comments, etc.
             $this->initializePostState($post);
-
-            // Prepend it to the existing collection
             $this->posts->prepend($post);
         }
     }
 
-    /**
-     * Helper to initialize state for a new post.
-     */
     private function initializePostState(Post $post): void
     {
         if (!isset($this->newCommentText[$post->id])) {
@@ -255,11 +271,6 @@ class Posts extends Component
         }
     }
 
-    // #[On('postUpdated')]
-    // public function postUpdated($postId)
-    // {
-    //     $this->refreshPost($postId);
-    // }
     public function refreshPost($postId)
     {
         $freshPost = Post::with([
@@ -276,8 +287,6 @@ class Posts extends Component
         }
     }
 
-
-    // --- Image Modal Methods ---
     public function openImageModal($postId, $imageIndex)
     {
         $post = $this->posts->firstWhere('id', $postId);
@@ -287,14 +296,14 @@ class Posts extends Component
 
         $this->imageModalUrls = $post->attachments
             ->where('file_type', 'image')
-            ->values() // Re-index collection
+            ->values()
             ->map(function ($attachment, $index) use ($postId) {
                 return ['url' => $attachment->file_url, 'originalPostId' => $postId, 'originalIndex' => $index];
             })->all();
 
         $this->currentImageModalIndex = $imageIndex;
         $this->imageModalOpen = true;
-        $this->dispatch('imageModalOpened'); // For potential JS body scroll lock
+        $this->dispatch('imageModalOpened');
     }
 
     public function closeImageModal()

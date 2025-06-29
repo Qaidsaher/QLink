@@ -44,7 +44,7 @@
 1.  **Clone the Repository**
 
     ```bash
-    git clone https://github.com/[your-username]/QLink.git
+    git clone https://github.com/Qaidsaher/QLink.git
     cd QLink
     ```
 
@@ -142,4 +142,4 @@ This project is distributed under the MIT License. See `LICENSE` for more inform
 
 saher qaid – [saherqaid2020@gmail.com](mailto:saherqaid2020@gmail.com)
 
-Project Link: [https://github.com/Qaidsaher/SaherConnect](https://www.google.com/search?q=https://github.com/%5BQaidsaher%5D/SaherConnect)
+Project Link: [https://github.com/Qaidsaher/QLink](https://www.google.com/search?q=https://github.com/%5BQaidsaher%5D/QLink)

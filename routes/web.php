@@ -9,10 +9,8 @@ use App\Livewire\PostCreate;
 use App\Livewire\PostUpdate;
 use App\Livewire\ProfileEdit;
 use App\Livewire\UserProfile;
-use App\Models\Post;
-use App\Models\User;
+
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
 use App\Livewire\ShowPost;
 use App\Livewire\Search;
 use App\Livewire\Posts;
@@ -25,6 +23,48 @@ use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Http\Request;
+use App\Models\Post;
+use App\Models\User;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/sitemap.xml', function () {
+    $posts = Post::all();
+    $users = User::all();
+
+    $urls = [
+        url('/'), // homepage
+        url('/about'),
+        url('/terms-of-service'),
+        url('/privacy-policy'),
+        url('/feed'),
+    ];
+
+    // Add posts URLs
+    foreach ($posts as $post) {
+        $urls[] = url("/posts/{$post->id}");
+    }
+
+    // Add user profile URLs
+    foreach ($users as $user) {
+        $urls[] = url("/user/{$user->username}");
+    }
+
+    $content = '<?xml version="1.0" encoding="UTF-8"?>';
+    $content .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+
+    foreach ($urls as $url) {
+        $content .= '<url>';
+        $content .= '<loc>' . $url . '</loc>';
+        $content .= '<changefreq>weekly</changefreq>';
+        $content .= '<priority>0.8</priority>';
+        $content .= '</url>';
+    }
+
+    $content .= '</urlset>';
+
+    return response($content, 200)
+        ->header('Content-Type', 'application/xml');
+});
 
 Route::get('/services/start', function (Request $request) {
     $password = $request->query('password');

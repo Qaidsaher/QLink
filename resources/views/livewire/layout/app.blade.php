@@ -5,7 +5,63 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>{{ $title ?? config('app.name', 'Saher Connect') }}</title>
+    <title>{{ $title ?? config('app.name', 'QLink') }} - The Social Connection Platform</title>
+
+    <meta name="description"
+        content="QLink is a social media platform to connect with friends, share updates, and discover what's trending." />
+    <meta name="keywords" content="social media, social network, friends, community, sharing, updates, QLink" />
+    <link rel="canonical" href="{{ url()->current() }}" />
+    <meta name="google-site-verification" content="kmU_E-myBUHqdfBG4MLPNJvTycdy3pxnQPT6Xq4hTP8" />
+    <meta property="og:title" content="{{ $title ?? config('app.name', 'QLink') }}" />
+    <meta property="og:description"
+        content="QLink is a social media platform to connect with friends, share updates, and discover what's trending." />
+    <meta property="og:image" content="{{ asset('images/qlink-og-image.png') }}" />
+    <meta property="og:url" content="{{ url()->current() }}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="QLink" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="{{ $title ?? config('app.name', 'QLink') }}" />
+    <meta name="twitter:description"
+        content="QLink is a social media platform to connect with friends, share updates, and discover what's trending." />
+    <meta name="twitter:image" content="{{ asset('images/qlink-twitter-card-image.png') }}" />
+    <meta name="twitter:site" content="@QLinkApp" />
+    <meta name="twitter:creator" content="@YourTwitterHandle" />
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Corporation",
+          "name": "QLink",
+          "url": "{{ config('app.url') }}",
+          "logo": "{{ asset('images/logo1.svg') }}",
+          "description": "QLink is a social media platform for connecting people.",
+          "sameAs": [
+            "https://www.facebook.com/saherqaid",
+            "https://twitter.com/saherqaid",
+            "https://www.instagram.com/saherqaid"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "url": "{{ config('app.url') }}",
+          "name": "QLink",
+          "publisher": {
+            "@type": "Corporation",
+            "name": "QLink"
+          },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "{{ config('app.url') }}/search?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        }
+      ]
+    }
+    </script>
+
 
     <!-- Fonts, Icons & Styles -->
     <link rel="preconnect" href="https://fonts.bunny.net">

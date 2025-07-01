@@ -23,6 +23,69 @@ use App\Livewire\Pages\PrivacyPage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Http\Request;
+
+Route::get('/services/start', function (Request $request) {
+    $password = $request->query('password');
+    if ($password !== '0000000') {
+        return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+    }
+
+    try {
+        // Start Queue
+        shell_exec('php ' . base_path('artisan') . ' queue:restart');
+        shell_exec('php ' . base_path('artisan') . ' queue:work --daemon --tries=3 > /dev/null 2>&1 &');
+
+        // Start Laravel Echo Server
+        shell_exec("cd /path-to-project && nohup laravel-echo-server start > /dev/null 2>&1 &");
+
+        // Start Reverb
+        shell_exec('php ' . base_path('artisan') . ' reverb:start > /dev/null 2>&1 &');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'All services started.',
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to start services.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+});
+Route::get('/services/stop', function (Request $request) {
+    $password = $request->query('password');
+    if ($password !== '0000000') {
+        return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+    }
+
+    try {
+        // Stop Queue workers (kill all queue:work processes)
+        shell_exec("pkill -f 'php artisan queue:work'");
+
+        // Stop Laravel Echo Server (kill by process name)
+        shell_exec("pkill -f 'laravel-echo-server'");
+
+        // Stop Reverb (if available)
+        shell_exec("php " . base_path('artisan') . " reverb:restart --stop");
+        // or if you have a specific command to stop it, replace this with correct command.
+        // Or kill its process if no stop command:
+        shell_exec("pkill -f 'php artisan reverb:start'");
+
+        return response()->json([
+            'success' => true,
+            'message' => 'All services stopped.',
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to stop services.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+});
 
 // Redirect to Google
 Route::get('/auth/google', function () {
@@ -37,7 +100,7 @@ Route::get('/auth/callback', function () {
         ['email' => $googleUser->getEmail()],
         [
             'name' => $googleUser->getName(),
-            'username' => $googleUser->getName().'_'.$googleUser->getId(),
+            'username' => $googleUser->getName() . '_' . $googleUser->getId(),
             'google_id' => $googleUser->getId(),
             'google_token' => $googleUser->token,
             'google_refresh_token' => $googleUser->refreshToken,

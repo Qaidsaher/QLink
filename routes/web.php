@@ -66,22 +66,22 @@ Route::get('/sitemap.xml', function () {
         ->header('Content-Type', 'application/xml');
 });
 
+
 Route::get('/services/start', function (Request $request) {
     $password = $request->query('password');
+    
     if ($password !== '0000000') {
         return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
     }
 
     try {
-        // Start Queue
-        shell_exec('php ' . base_path('artisan') . ' queue:restart');
-        shell_exec('php ' . base_path('artisan') . ' queue:work --daemon --tries=3 > /dev/null 2>&1 &');
+        // Start Laravel Echo Server (run in the background)
+        $echoServerCommand = 'nohup laravel-echo-server start > /dev/null 2>&1 &';
+        exec($echoServerCommand);
 
-        // Start Laravel Echo Server
-        shell_exec("cd /path-to-project && nohup laravel-echo-server start > /dev/null 2>&1 &");
-
-        // Start Reverb
-        shell_exec('php ' . base_path('artisan') . ' reverb:start > /dev/null 2>&1 &');
+        // Start Reverb Server (if needed)
+        $reverbCommand = 'php ' . base_path('artisan') . ' reverb:start > /dev/null 2>&1 &';
+        exec($reverbCommand);
 
         return response()->json([
             'success' => true,
@@ -97,22 +97,17 @@ Route::get('/services/start', function (Request $request) {
 });
 Route::get('/services/stop', function (Request $request) {
     $password = $request->query('password');
+    
     if ($password !== '0000000') {
         return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
     }
 
     try {
-        // Stop Queue workers (kill all queue:work processes)
-        shell_exec("pkill -f 'php artisan queue:work'");
+        // Stop Laravel Echo Server (kill process)
+        exec("pkill -f 'laravel-echo-server'");
 
-        // Stop Laravel Echo Server (kill by process name)
-        shell_exec("pkill -f 'laravel-echo-server'");
-
-        // Stop Reverb (if available)
-        shell_exec("php " . base_path('artisan') . " reverb:restart --stop");
-        // or if you have a specific command to stop it, replace this with correct command.
-        // Or kill its process if no stop command:
-        shell_exec("pkill -f 'php artisan reverb:start'");
+        // Stop Reverb Server (if running)
+        exec('php ' . base_path('artisan') . ' reverb:restart --stop');
 
         return response()->json([
             'success' => true,
@@ -126,6 +121,7 @@ Route::get('/services/stop', function (Request $request) {
         ], 500);
     }
 });
+
 
 // Redirect to Google
 Route::get('/auth/google', function () {

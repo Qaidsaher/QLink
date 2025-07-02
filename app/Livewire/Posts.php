@@ -44,6 +44,18 @@ class Posts extends Component
         $this->userId = $userId;
         $this->loadPosts();
     }
+    public $loadingMore = false;
+
+    public function scrollBottom()
+    {
+        if ($this->loadingMore) {
+            return;
+        }
+
+        $this->loadingMore = true;
+        $this->loadMore();  // your existing load logic
+        $this->loadingMore = false;
+    }
 
     public function loadPosts($isInitialLoad = true)
     {

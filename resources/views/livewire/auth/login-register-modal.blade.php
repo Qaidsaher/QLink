@@ -1,30 +1,30 @@
 <div>
     {{-- This component is only rendered for guest users --}}
     @guest
-    <div class="p-4 space-y-3 border-t border-gray-200 dark:border-slate-700">
-        <h3 class="hidden font-bold text-gray-800 text-md dark:text-white xl:block">
-            New to the  {{ config('app.name', 'QLink') }} platform?
-        </h3>
+        <div class="p-4 space-y-3 border-t border-gray-200 dark:border-slate-700">
+            <h3 class="hidden font-bold text-gray-800 text-md dark:text-white xl:block">
+                New to the {{ config('app.name', 'QLink') }} platform?
+            </h3>
 
-        <p class="hidden text-sm text-gray-600 dark:text-slate-400 xl:block">
-            Sign up now to get your own personalized timeline!
-        </p>
+            <p class="hidden text-sm text-gray-600 dark:text-slate-400 xl:block">
+                Sign up now to get your own personalized timeline!
+            </p>
 
-        <!-- Create Account Button -->
-        <button wire:click="open('register')"
-            class="flex items-center justify-center w-full gap-2 px-4 py-2 font-bold text-white transition-all bg-blue-500 rounded-full hover:bg-blue-600">
-            <i class="text-lg fas fa-user-plus"></i>
-            <span class="hidden xl:inline">Create account</span>
-        </button>
+            <!-- Create Account Button -->
+            <button wire:click="open('register')"
+                class="flex items-center justify-center w-full gap-2 px-4 py-2 font-bold text-white transition-all bg-blue-500 rounded-full hover:bg-blue-600">
+                <i class="text-lg fas fa-user-plus"></i>
+                <span class="hidden xl:inline">Create account</span>
+            </button>
 
-        <!-- Login Button -->
-        <button wire:click="open('login')"
-            class="flex items-center justify-center w-full gap-2 px-4 py-2 font-bold text-gray-800 bg-transparent border border-gray-300 rounded-full dark:text-white dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800">
-            <i class="text-lg fas fa-sign-in-alt"></i>
-            <span class="hidden xl:inline">Log in</span>
-        </button>
-    </div>
-@endguest
+            <!-- Login Button -->
+            <button wire:click="open('login')"
+                class="flex items-center justify-center w-full gap-2 px-4 py-2 font-bold text-gray-800 bg-transparent border border-gray-300 rounded-full dark:text-white dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-800">
+                <i class="text-lg fas fa-sign-in-alt"></i>
+                <span class="hidden xl:inline">Log in</span>
+            </button>
+        </div>
+    @endguest
 
 
     @if($isOpen)
@@ -46,10 +46,18 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
-                    <div class="flex-grow text-center"><i class="text-3xl text-blue-500 fab fa-connectdevelop"></i></div>
+                    <div class="flex justify-center flex-grow text-center">
+                        <a href="{{ route('home') }}"
+                            class="flex items-center text-3xl font-semibold text-blue-600 transition-all duration-300 rounded-full ">
+                            <img src="{{ asset('/images/logo1.svg') }}" class="object-fill w-16 h-16 sm:w-12 sm:h-12" />
+                            <span class="hidden xl:inline" style="font-family: sans-serif;">
+                                {{ config('app.name', 'QLink') }}</span>
+                        </a>
+
+                    </div>
                 </div>
 
-                <div class="flex-grow p-8 pt-2 overflow-y-auto">
+                <div class="flex-grow p-8 pt-1 overflow-y-auto">
                     <h2 class="mb-8 text-3xl font-extrabold text-center text-gray-900 dark:text-white">
                         {{ $formState === 'login' ? 'Sign in to your account' : 'Create your account' }}
                     </h2>
@@ -69,9 +77,35 @@
                                     <x-input-error :messages="$errors->get('loginPassword')" class="mt-2" />
                                 </div>
                                 <button type="submit"
-                                    class="w-full py-3 mt-4 font-bold text-white bg-gray-900 rounded-full dark:bg-white dark:text-black hover:opacity-90">Sign
-                                    in</button>
+                                    class="w-full py-3 mt-4 font-bold text-white bg-gray-900 rounded-full dark:bg-white dark:text-black hover:opacity-90 relative h-[48px]"
+                                    wire:target="login" wire:loading.attr="disabled">
+
+                                    {{-- Normal Text --}}
+                                    <span wire:loading.remove wire:target="login">
+                                        Sign in
+                                    </span>
+
+                                    {{-- Spinner Centered --}}
+                                    <div wire:loading wire:target="login" class="">
+                                        <svg class="w-5 h-5 text-white animate-spin dark:text-black"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor"
+                                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                        </svg>
+                                    </div>
+                                </button>
+
                             </form>
+                            <a href={{ route('google.login') }}
+                                class="inline-flex items-center justify-center w-full px-4 py-2 my-1 font-semibold text-gray-700 bg-white border border-gray-300 rounded-full shadow-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white hover:bg-gray-50 dark:hover:bg-slate-700">
+                                <svg class="w-5 h-5 mr-2 text-red-500" viewBox="0 0 488 512" fill="currentColor"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M488 261.8c0-17.8-1.5-35-4.4-51.6H249v97.8h134.2c-5.8 31.4-23.2 57.8-49.6 75.6l80 62.3c46.8-43.1 74.4-106.7 74.4-184.1zM249 480c66.5 0 122.3-22 163.1-59.6l-80-62.3c-22.2 15-50.8 23.9-83.1 23.9-63.8 0-117.8-43.1-137.2-101.2H30.9v63.7C71.8 432.5 153.8 480 249 480zM111.8 280.8c-5.6-16.5-8.8-34-8.8-52s3.2-35.5 8.8-52V113.9H30.9C11.1 153.6 0 199.5 0 248s11.1 94.4 30.9 134.1l80.9-63.3zM249 97.8c36 0 68.4 12.4 93.8 36.7l70.2-70.2C368.1 25.3 311.5 0 249 0 153.8 0 71.8 47.5 30.9 113.9l80.9 63.7C131.2 140.9 185.2 97.8 249 97.8z" />
+                                </svg> Sign in with Google
+                            </a>
                         </div>
 
                         <div x-show="$wire.formState === 'register'" x-transition:opacity.duration.500ms
@@ -132,9 +166,35 @@
                                         id="password_confirmation" type="password" required
                                         placeholder="Confirm Password" /></div>
                                 <button type="submit"
-                                    class="w-full py-3 mt-4 font-bold text-white bg-blue-500 rounded-full hover:bg-blue-600">Create
-                                    account</button>
+                                    class="w-full py-3 mt-4 font-bold text-white bg-blue-500 rounded-full hover:bg-blue-600 relative h-[48px]"
+                                    wire:target="register" wire:loading.attr="disabled">
+
+                                    {{-- Normal Text --}}
+                                    <span wire:loading.remove wire:target="register">
+                                        Create account
+                                    </span>
+
+                                    {{-- Spinner while loading --}}
+                                    <div wire:loading wire:target="register">
+                                        <svg class="w-5 h-5 text-white animate-spin" xmlns="http://www.w3.org/2000/svg"
+                                            fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor"
+                                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                        </svg>
+                                    </div>
+                                </button>
+
                             </form>
+                            <a href={{ route('google.login') }}
+                                class="inline-flex items-center justify-center w-full px-4 py-2 my-1 font-semibold text-gray-700 bg-white border border-gray-300 rounded-full shadow-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white hover:bg-gray-50 dark:hover:bg-slate-700">
+                                <svg class="w-5 h-5 mr-2 text-red-500" viewBox="0 0 488 512" fill="currentColor"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M488 261.8c0-17.8-1.5-35-4.4-51.6H249v97.8h134.2c-5.8 31.4-23.2 57.8-49.6 75.6l80 62.3c46.8-43.1 74.4-106.7 74.4-184.1zM249 480c66.5 0 122.3-22 163.1-59.6l-80-62.3c-22.2 15-50.8 23.9-83.1 23.9-63.8 0-117.8-43.1-137.2-101.2H30.9v63.7C71.8 432.5 153.8 480 249 480zM111.8 280.8c-5.6-16.5-8.8-34-8.8-52s3.2-35.5 8.8-52V113.9H30.9C11.1 153.6 0 199.5 0 248s11.1 94.4 30.9 134.1l80.9-63.3zM249 97.8c36 0 68.4 12.4 93.8 36.7l70.2-70.2C368.1 25.3 311.5 0 249 0 153.8 0 71.8 47.5 30.9 113.9l80.9 63.7C131.2 140.9 185.2 97.8 249 97.8z" />
+                                </svg> Sign in with Google
+                            </a>
                         </div>
                     </div>
 

@@ -54,9 +54,15 @@
         <!-- Right Side: Auth Form -->
         <div class="flex flex-col justify-center w-full p-6 lg:w-1/2 sm:p-12">
             <div class="text-center">
-                <i class="text-4xl text-blue-500 fab fa-connectdevelop"></i>
+                <a href="{{ route('home') }}"
+                    class="flex items-center justify-center w-full text-3xl font-semibold text-blue-600 transition-all duration-300 rounded-full">
+                    <img src="{{ asset('/images/logo1.svg') }}" class="object-fill w-16 h-16 sm:w-12 sm:h-12" />
+                    <span class="hidden xl:inline" style="font-family: sans-serif;">
+                        {{ config('app.name', 'QLink') }}</span>
+                </a>
                 <h2 class="mt-4 text-3xl font-extrabold text-gray-900 dark:text-white">
-                    {{ $formState === 'login' ? 'Welcome Back!' : 'Join Today' }}</h2>
+                    {{ $formState === 'login' ? 'Welcome Back!' : 'Join Today' }}
+                </h2>
                 <p class="mt-2 text-sm text-gray-600 dark:text-slate-400">
                     @if($formState === 'login')
                         Don't have an account? <button wire:click="switchForm('register')"
@@ -152,14 +158,12 @@
                 <div class="space-y-3">
                     <button wire:click="redirectToProvider('google')"
                         class="inline-flex items-center justify-center w-full px-4 py-2 font-semibold text-gray-700 bg-white border border-gray-300 rounded-full shadow-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white hover:bg-gray-50 dark:hover:bg-slate-700">
-                       <svg class="w-5 h-5 mr-2 text-red-500" viewBox="0 0 488 512" fill="currentColor"
+                        <svg class="w-5 h-5 mr-2 text-red-500" viewBox="0 0 488 512" fill="currentColor"
                             xmlns="http://www.w3.org/2000/svg">
                             <path
                                 d="M488 261.8c0-17.8-1.5-35-4.4-51.6H249v97.8h134.2c-5.8 31.4-23.2 57.8-49.6 75.6l80 62.3c46.8-43.1 74.4-106.7 74.4-184.1zM249 480c66.5 0 122.3-22 163.1-59.6l-80-62.3c-22.2 15-50.8 23.9-83.1 23.9-63.8 0-117.8-43.1-137.2-101.2H30.9v63.7C71.8 432.5 153.8 480 249 480zM111.8 280.8c-5.6-16.5-8.8-34-8.8-52s3.2-35.5 8.8-52V113.9H30.9C11.1 153.6 0 199.5 0 248s11.1 94.4 30.9 134.1l80.9-63.3zM249 97.8c36 0 68.4 12.4 93.8 36.7l70.2-70.2C368.1 25.3 311.5 0 249 0 153.8 0 71.8 47.5 30.9 113.9l80.9 63.7C131.2 140.9 185.2 97.8 249 97.8z" />
                         </svg> Sign in with Google
                     </button>
-                  
-
                 </div>
             </div>
         </div>

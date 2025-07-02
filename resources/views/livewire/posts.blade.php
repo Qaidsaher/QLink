@@ -31,15 +31,14 @@
 
           const observer = new IntersectionObserver((entries) => {
               entries.forEach(entry => {
-                  // Check if the element is intersecting
                   if (entry.isIntersecting) {
-                      // Dispatch the event to the Livewire component
+                     
                        @this.dispatch('scrollBottom');
                   }
                });
              }, {
-               root: null, // Observe relative to the viewport
-               threshold: 0.1 // Fire when 10% of the element is visible
+               root: null, 
+               threshold: 0.1 
            });
 
             observer.observe(bottomTrigger);
@@ -131,10 +130,7 @@
                                                 Delete Post
                                             </button>
                                         @endif
-
-
                                     </div>
-
                                     <!-- Modal -->
                                     <div x-show="showDeleteModal" x-transition x-cloak
                                         class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -173,29 +169,9 @@
                             <div class="p-3 mt-2">
                                 @include('partials.posts._post-attachments')
                             </div>
-                            {{-- This button will now update correctly! --}}
-                            {{-- <button wire:click="toggleLike({{ $post->id }})">
-                                Like ({{ $post->likes->count() }})
-                            </button> --}}
-
-
-
-
-
-
-
-
-                            {{--
-                            This entire block should be placed inside your main post loop:
-                            @foreach ($posts as $post)
-                            ...
-                            @endforeach
-                            --}}
-
                             <div class="post-action-wrapper">
                                 {{-- X.com-style Action Bar --}}
                                 <div class="flex items-center justify-between max-w-sm mt-4 text-gray-500">
-
                                     {{-- Comment/Reply Button --}}
                                     {{-- (!-- FIX: The click event now toggles the specific post's comment section --) --}}
                                     <button wire:click="toggleComments({{ $post->id }})"
@@ -356,13 +332,6 @@
                                     </div>
                                 </div>
                             </div>
-
-
-
-
-
-
-                            {{-- <livewire:post-action :post="$post" wire:key="post-card-{{ $post->id }}" /> --}}
                         </div>
                     </article>
                 @endforeach

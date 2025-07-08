@@ -11,8 +11,11 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use phpDocumentor\Reflection\Types\Boolean;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class PostCreate extends Component
 {
@@ -146,23 +149,41 @@ class PostCreate extends Component
             'content' => $this->content,
         ]);
 
+        $imageManager = new ImageManager(new Driver());
+
         if ($this->attachments) {
             foreach ($this->attachments as $file) {
                 if ($file instanceof UploadedFile && $file->isValid()) {
                     $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                     $extension = $file->getClientOriginalExtension();
-                    $safeFilename = Str::slug($originalName) . '-' . uniqid() . '.' . $extension;
+                    $safeFilename = Str::slug($originalName) . '-' . uniqid() . '.jpg'; // Force jpg
 
-                    $path = $file->storeAs(
-                        "attachments/user_" . Auth::id() . "/post_" . $post->id,
-                        $safeFilename,
-                        'public'
-                    );
+                    $directory = "attachments/user_" . Auth::id() . "/post_" . $post->id;
+                    $path = $directory . '/' . $safeFilename;
+
+                    // Check if image type
+                    if (Str::startsWith($file->getMimeType(), 'image/')) {
+                        try {
+                            // Compress and resize the image
+                            $compressed = $imageManager->read($file->getPathname())
+                                ->scale(width: 1200)
+                                ->toJpeg(quality: 85);
+
+                            // Save compressed image
+                            Storage::disk('public')->put($path, $compressed->toString());
+                        } catch (\Exception $e) {
+                            Log::error('Image compression failed: ' . $e->getMessage());
+                            continue; // skip this file
+                        }
+                    } else {
+                        // For non-images, store as-is
+                        $path = $file->storeAs($directory, $safeFilename, 'public');
+                    }
 
                     Attachment::create([
                         'post_id' => $post->id,
                         'file_path' => $path,
-                        'file_type' => $this->determineStoredFileType($file->getMimeType(), $extension), // Use a potentially different method for DB
+                        'file_type' => $this->determineStoredFileType($file->getMimeType(), $extension),
                         'file_name' => $file->getClientOriginalName(),
                     ]);
                 }
@@ -170,27 +191,10 @@ class PostCreate extends Component
         }
 
         $this->resetForm();
-        // broadcast(new PostUpdated($post, 'created'));
+
         Auth::user()->notify(new UserNotification('post_created', $post, Auth::user()));
-
-
-    //    return $this->redirect->route('feed', navigate: true);
-        // $this->dispatch('postCreated', postId: $post->id);
-        // $this->js("
-        //     showToast({ 
-        //         type: 'success', 
-        //         title: 'Post Created!', 
-        //         message: 'Your new post is now live for everyone to see.' 
-        //     })
-        // ");
-
-    //     $this->js("
-    //         notifyNewPosts(
-    //   [null],
-    //   7,'/feed'
-    // )
-    //     ");
     }
+
 
     // This method determines the type string stored in the DB
     private function determineStoredFileType(string $mimeType, string $extension): string

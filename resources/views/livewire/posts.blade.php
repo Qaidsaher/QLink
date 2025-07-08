@@ -22,22 +22,20 @@
 
         <div x-data="{
             init() {
-    const trigger = this.$refs.bottomTrigger;
-    if (! trigger || @this.get('loadingMore')) {
-        return;
-    }
-
-    new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                @this.call('scrollBottom');
+                const trigger = this.$refs.bottomTrigger;
+                if (! trigger || @this.get('loadingMore')) {
+                    return;
+                }
+                new IntersectionObserver(entries => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            @this.call('scrollBottom');
+                        }
+                    });
+                }, { root: null, threshold: 0.1 })
+                .observe(trigger);
             }
-        });
-    }, { root: null, threshold: 0.1 })
-    .observe(trigger);
-}
-
-            }" class="max-w-2xl mx-auto bg-white border-r border-gray-200 dark:bg-black dark:border-slate-700">
+        }" class="max-w-2xl mx-auto bg-white border-r border-gray-200 dark:bg-black dark:border-slate-700">
             {{-- Post Loop --}}
 
             @forelse ($posts as $post)
@@ -66,16 +64,13 @@
                                             </span>
                                         </span>
                                     </div>
-
                                 </a>
-
                                 <span class="text-gray-500 dark:text-gray-400">&middot;</span>
                                 <a href="{{ route('posts.show', $post->id) }}" wire:navigate
                                     class="text-gray-500 dark:text-gray-400 hover:underline">
                                     {{ $post->created_at->diffForHumans(null, true) }}
                                 </a>
                             </div>
-
 
                             <!-- Dropdown menu -->
                             <div x-data="{ menuOpen: false, showDeleteModal: false }" class="relative">
@@ -101,9 +96,6 @@
                                         </svg>
                                         Show Details
                                     </a>
-
-
-
                                     @if(auth()->id() === $post->user_id)
                                         <a href="{{ route('posts.edit', $post) }}" wire:navigate
                                             class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700">
@@ -135,24 +127,20 @@
                                         <p class="mb-6 text-sm text-gray-600 dark:text-gray-300">
                                             This action cannot be undone.
                                         </p>
-
                                         <div class="flex justify-end space-x-2">
                                             <button @click="showDeleteModal = false"
                                                 class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md dark:text-gray-300 dark:bg-slate-700 hover:bg-gray-200">
                                                 Cancel
                                             </button>
-
                                             <button
                                                 @click="showDeleteModal = false; Livewire.dispatch('deletePost', { postId: {{ $post->id }} });"
                                                 class="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700">
                                                 Delete
                                             </button>
-
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
 
                         {{-- Post Content --}}
@@ -166,9 +154,8 @@
                             {{-- X.com-style Action Bar --}}
                             <div class="flex items-center justify-between max-w-sm mt-4 text-gray-500">
                                 {{-- Comment/Reply Button --}}
-                                {{-- (!-- FIX: The click event now toggles the specific post's comment section --) --}}
                                 <button wire:click="toggleComments({{ $post->id }})"
-                                    class="flex items-center space-x-2 transition group">
+                                    class="relative flex items-center space-x-2 transition group">
                                     <div class="p-2 rounded-full group-hover:bg-blue-100 dark:group-hover:bg-blue-900/20">
                                         <svg class="w-5 h-5 group-hover:text-blue-500" fill="none" viewBox="0 0 24 24"
                                             stroke="currentColor">
@@ -177,6 +164,12 @@
                                         </svg>
                                     </div>
                                     <span class="text-sm group-hover:text-blue-500">{{ $post->comments->count() }}</span>
+                                    <span wire:loading wire:target="toggleComments({{ $post->id }})" class="ml-2">
+                                        <svg class="w-4 h-4 text-blue-500 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                        </svg>
+                                    </span>
                                 </button>
 
                                 {{-- Repost Button (Placeholder) --}}
@@ -198,9 +191,8 @@
                                 </button>
 
                                 {{-- Like Button --}}
-                                {{-- (!-- FIX: Pass the post ID to the toggleLike method --) --}}
                                 <button wire:click="toggleLike({{ $post->id }})"
-                                    class="flex items-center space-x-2 transition group">
+                                    class="relative flex items-center space-x-2 transition group">
                                     <div class="p-2 rounded-full group-hover:bg-red-100 dark:group-hover:bg-red-900/20">
                                         <svg class="w-5 h-5 {{ $post->isLikedBy(auth()->user()) ? 'text-red-500' : 'group-hover:text-red-500' }}"
                                             fill="{{ $post->isLikedBy(auth()->user()) ? 'currentColor' : 'none' }}"
@@ -211,6 +203,12 @@
                                     </div>
                                     <span
                                         class="text-sm {{ $post->isLikedBy(auth()->user()) ? 'text-red-500' : 'group-hover:text-red-500' }}">{{ $post->likes->count() }}</span>
+                                    <span wire:loading wire:target="toggleLike({{ $post->id }})" class="ml-2">
+                                        <svg class="w-4 h-4 text-red-500 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                        </svg>
+                                    </span>
                                 </button>
 
                                 {{-- Share Button --}}
@@ -225,7 +223,6 @@
                             </div>
 
                             {{-- Comments Section with Animation --}}
-                            {{-- (!-- FIX: Use the specific post's open/closed state from the array --) --}}
                             <div x-data="{ openComments: @entangle('openCommentsSection.' . $post->id) }"
                                 x-show="openComments" x-transition:enter="transition ease-out duration-300"
                                 x-transition:enter-start="opacity-0 -translate-y-4"
@@ -239,20 +236,22 @@
                                         <img src="{{ Auth::user()->avatarUrl() }}" alt="{{ Auth::user()->name }}"
                                             class="object-cover w-10 h-10 rounded-full">
                                         <div class="flex-1">
-                                            {{-- (!-- FIX: Wire model to the specific post's comment text in the array --) --}}
                                             <textarea wire:model.defer="newCommentText.{{ $post->id }}"
                                                 placeholder="Post your reply" rows="2"
                                                 class="w-full p-2 text-base bg-transparent border-b border-gray-300 rounded-lg dark:border-slate-600 focus:outline-none focus:border-blue-500 dark:text-white"></textarea>
                                             <div class="flex items-center justify-end mt-2">
-                                                {{-- (!-- FIX: Point the error message to the correct array key --) --}}
                                                 @error('newCommentText.' . $post->id) <span
                                                 class="mr-auto text-xs text-red-500">{{ $message }}</span> @enderror
-                                                {{-- (!-- FIX: Pass the post ID to the addComment method --) --}}
                                                 <button wire:click="addComment({{ $post->id }})" wire:loading.attr="disabled"
-                                                    wire:target="addComment"
-                                                    class="px-4 py-1.5 text-sm font-bold text-white bg-blue-500 rounded-full hover:bg-blue-600 disabled:opacity-50 min-w-[70px] text-center">
-                                                    <span wire:loading.remove wire:target="addComment">Reply</span>
-                                                    <span wire:loading wire:target="addComment">Replying...</span>
+                                                    wire:target="addComment({{ $post->id }})"
+                                                    class="px-4 py-1.5 text-sm font-bold text-white bg-blue-500 rounded-full hover:bg-blue-600 disabled:opacity-50 min-w-[70px] text-center relative">
+                                                    <span wire:loading.remove wire:target="addComment({{ $post->id }})">Reply</span>
+                                                    <span wire:loading wire:target="addComment({{ $post->id }})">
+                                                        <svg class="inline w-4 h-4 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                                        </svg>
+                                                    </span>
                                                 </button>
                                             </div>
                                         </div>
@@ -272,7 +271,6 @@
                                                         <span
                                                             class="text-gray-500 dark:text-gray-400">@<span>{{ $comment->user->username }}</span></span>
                                                         @if(Auth::id() === $comment->user_id)
-                                                            {{-- (!-- FIX: Call the new confirmation method --) --}}
                                                             <button wire:click="requestDeleteConfirmation({{ $comment->id }})"
                                                                 class="ml-auto text-gray-400 hover:text-red-500 focus:outline-none"
                                                                 title="Delete Comment">
@@ -317,7 +315,6 @@
                                         class="px-5 py-2 text-gray-700 transition bg-gray-100 rounded-md dark:text-gray-300 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600">
                                         Cancel
                                     </button>
-                                    {{-- (!-- FIX: Call the new parameter-less deleteComment method --) --}}
                                     <button wire:click="deleteComment" wire:loading.attr="disabled"
                                         class="px-5 py-2 text-white transition bg-red-600 rounded-md hover:bg-red-700">
                                         <span wire:loading.remove wire:target="deleteComment">Delete</span>
@@ -330,31 +327,23 @@
                 </article>
 
             @empty
-                {{-- only show this if posts collection is loaded and empty --}}
                 @if ($posts !== null)
                     <div class="p-10 text-center">
                         <p class="text-gray-500 dark:text-gray-400">No posts to show.</p>
                     </div>
                 @else
-                    {{-- initial-loading skeleton --}}
                     <div wire:init="loadPosts" class="p-10 text-center">
                         <p class="text-gray-500 dark:text-gray-400">Loading posts...</p>
                     </div>
                 @endif
             @endforelse
 
-            {{-- after the @endforelse --}}
             @if ($posts->isNotEmpty())
-                {{-- skeleton loaders --}}
                 <div class="p-2 space-y-4 animate-pulse">
-                    @for ($i = 0; $i < 3; $i++)
+                    @for ($i = 0; $i < 2; $i++)
                         <div class="flex p-2 space-x-4 border-b border-gray-200 dark:border-slate-700">
-                            <!-- Avatar -->
                             <div class="w-12 h-12 rounded-full bg-slate-300 dark:bg-slate-600"></div>
-
-                            <!-- Content -->
                             <div class="flex-1 py-1 space-y-3">
-                                <!-- Title line -->
                                 <div class="flex items-start justify-between">
                                     <div class="flex items-start space-x-2 text-sm">
                                         <div class="flex flex-col space-y-1">
@@ -369,32 +358,22 @@
                                         <div class="w-1 h-1 bg-gray-300 rounded-full dark:bg-slate-600"></div>
                                         <div class="w-1 h-1 bg-gray-300 rounded-full dark:bg-slate-600"></div>
                                     </div>
-
-                                </div> <!-- Text lines -->
-                                {{-- Post Content --}}
+                                </div>
                                 <div class="mt-2 space-y-2">
                                     <div class="w-11/12 h-4 bg-gray-200 rounded dark:bg-slate-700"></div>
                                     <div class="w-9/12 h-4 bg-gray-200 rounded dark:bg-slate-700"></div>
                                     <div class="w-6/12 h-4 bg-gray-200 rounded dark:bg-slate-700"></div>
                                 </div>
-
-                                {{-- Action Bar --}}
-
                                 <div class="flex pt-2 space-x-4">
                                     <div class="w-16 h-4 bg-gray-200 rounded dark:bg-slate-700"></div>
                                     <div class="w-16 h-4 bg-gray-200 rounded dark:bg-slate-700"></div>
                                     <div class="w-16 h-4 bg-gray-200 rounded dark:bg-slate-700"></div>
                                     <div class="w-16 h-4 bg-gray-200 rounded dark:bg-slate-700"></div>
-
                                 </div>
                             </div>
                         </div>
-
-
                     @endfor
                 </div>
-
-                {{-- trigger only if not already loading more --}}
                 @if (!$loadingMore)
                     <div x-ref="bottomTrigger" class="h-0"></div>
                 @endif

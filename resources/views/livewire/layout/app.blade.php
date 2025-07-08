@@ -202,16 +202,25 @@
                 if (echoJoined) return;
                 echoJoined = true;
 
-                Echo.join('online')
-                    .here(users => {
-                        users.forEach(user => setUserOnline(user.id));
-                    })
-                    .joining(user => {
-                        setUserOnline(user.id);
-                    })
-                    .leaving(user => {
-                        setUserOffline(user.id);
-                    });
+                try {
+                    if (typeof Echo === 'undefined' || typeof Echo.join !== 'function') {
+                        console.warn('[Echo] Echo is not available. Skipping real-time presence.');
+                        return;
+                    }
+
+                    Echo.join('online')
+                        .here(users => {
+                            users.forEach(user => setUserOnline(user.id));
+                        })
+                        .joining(user => {
+                            setUserOnline(user.id);
+                        })
+                        .leaving(user => {
+                            setUserOffline(user.id);
+                        });
+                } catch (err) {
+                    console.error('[Echo] Failed to initialize:', err);
+                }
             }
 
             // Public API

@@ -134,9 +134,9 @@ Contributions are what make the open-source community such an amazing place to l
 
 Please see the `CONTRIBUTING.md` file for more detailed guidelines.
 
-## License
+## 📜 License
 
-This project is distributed under the MIT License. See `LICENSE` for more information.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Contact
 
